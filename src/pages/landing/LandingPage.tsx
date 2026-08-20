@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Eye, CheckSquare, BarChart3, Building2, Database,
   Check, Menu, X, Activity, Mail, Zap,
@@ -649,6 +650,10 @@ export default function LandingPage() {
 
           <div className="lp-footer-copy">
             © {new Date().getFullYear()} Cattle Force. All rights reserved.
+            {' · '}
+            <Link to="/privacy-policy">Privacy Policy</Link>
+            {' · '}
+            <Link to="/terms">Terms &amp; Conditions</Link>
           </div>
         </div>
       </footer>

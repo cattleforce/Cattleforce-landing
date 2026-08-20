@@ -1626,6 +1626,13 @@ a.lp-contact-detail-value:hover { color: var(--lp-accent); }
   font-size: 12px;
   color: var(--lp-text-subtle);
 }
+.lp-footer-copy a {
+  color: var(--lp-text-subtle);
+  text-decoration: none;
+}
+.lp-footer-copy a:hover {
+  color: var(--lp-accent);
+}
 
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 
