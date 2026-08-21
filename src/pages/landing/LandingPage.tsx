@@ -112,7 +112,6 @@ export default function LandingPage() {
           </a>
 
           <div className="lp-nav-links">
-            <a href="#pricing">Pricing</a>
             <a href="#features">Features</a>
             <a href="#about">About</a>
             <a href="#contact">Contact</a>
@@ -134,7 +133,6 @@ export default function LandingPage() {
 
       {/* Mobile menu */}
       <div className={`lp-mobile-menu${mobileOpen ? ' open' : ''}`}>
-        <a href="#pricing" onClick={() => setMobileOpen(false)}>Pricing</a>
         <a href="#features" onClick={() => setMobileOpen(false)}>Features</a>
         <a href="#about" onClick={() => setMobileOpen(false)}>About</a>
         <a href="#contact" onClick={() => setMobileOpen(false)}>Contact</a>
@@ -359,95 +357,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING ─────────────────────────────────── */}
-      <section className="lp-section lp-pricing lp-above-hero" id="pricing">
-        <div className="lp-container">
-          <div className="lp-fade-in">
-            <h2 className="lp-section-title">Simple pricing that scales with your herd</h2>
-            <p className="lp-section-sub">
-              No per-animal surprises. Clear pricing as your operation grows.
-            </p>
-          </div>
-          <div className="lp-pricing-grid">
-
-            {/* Starter */}
-            <div className="lp-plan-card lp-fade-in delay-1">
-              <div className="lp-plan-name">Starter</div>
-              <p className="lp-plan-tagline">For growing farms getting organized</p>
-              <div className="lp-plan-price">
-                <span className="lp-plan-currency">$</span>
-                <span className="lp-plan-amount">79</span>
-                <span className="lp-plan-period">/mo</span>
-              </div>
-              <a href={`${APP_URL}/login`} className="lp-plan-cta ghost">Start Managing</a>
-              <div className="lp-plan-divider" />
-              <div className="lp-plan-features">
-                {['Up to 100 animals', 'Core tracking modules', '2 users', 'CSV exports', 'Email support'].map((f) => (
-                  <div key={f} className="lp-plan-feature">
-                    <Check size={14} className="lp-check-icon" />
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Ranch — highlighted */}
-            <div className="lp-plan-card featured lp-fade-in delay-2">
-              <div className="lp-plan-badge">Most Popular</div>
-              <div className="lp-plan-name">Ranch</div>
-              <p className="lp-plan-tagline">For active, high-volume operations</p>
-              <div className="lp-plan-price">
-                <span className="lp-plan-currency">$</span>
-                <span className="lp-plan-amount">149</span>
-                <span className="lp-plan-period">/mo</span>
-              </div>
-              <a href={`${APP_URL}/login`} className="lp-plan-cta primary">Start Managing</a>
-              <div className="lp-plan-divider" />
-              <div className="lp-plan-features">
-                {[
-                  'Up to 1,000 animals',
-                  'Full system + analytics',
-                  'Multi-user access',
-                  'Investor visibility',
-                  'Reproduction & milk modules',
-                  'Priority support',
-                ].map((f) => (
-                  <div key={f} className="lp-plan-feature">
-                    <Check size={14} className="lp-check-icon" />
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Enterprise */}
-            <div className="lp-plan-card lp-fade-in delay-3">
-              <div className="lp-plan-name">Enterprise</div>
-              <p className="lp-plan-tagline">For multi-farm and large-scale operations</p>
-              <div className="lp-plan-custom">Custom</div>
-              <a href="#contact" className="lp-plan-cta ghost">Talk to Sales</a>
-              <div className="lp-plan-divider" />
-              <div className="lp-plan-features">
-                {[
-                  'Unlimited animals & farms',
-                  'Custom integrations',
-                  'Dedicated support',
-                  'SLA guarantee',
-                  'On-boarding assistance',
-                  'API access',
-                ].map((f) => (
-                  <div key={f} className="lp-plan-feature">
-                    <Check size={14} className="lp-check-icon" />
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
       {/* ── VALUE BLOCK ─────────────────────────────── */}
       <section className="lp-section-sm lp-value lp-above-hero">
         <div className="lp-container">
@@ -632,7 +541,6 @@ export default function LandingPage() {
 
             <div className="lp-footer-links">
               <a href="#features">Features</a>
-              <a href="#pricing">Pricing</a>
               <a href="#contact">Contact</a>
               <a href={`${APP_URL}/login`}>Login</a>
             </div>
