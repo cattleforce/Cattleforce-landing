@@ -118,8 +118,7 @@ export default function LandingPage() {
           </div>
 
           <div className="lp-nav-actions">
-            <a href={`${APP_URL}/login`} className="lp-nav-login">Login</a>
-            <a href={`${APP_URL}/login`} className="lp-nav-cta">Start Managing Your Herd</a>
+            <a href={`${APP_URL}/login?fresh=1`} className="lp-btn-secondary lp-nav-login">Login</a>
             <button
               className="lp-mobile-toggle"
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -136,8 +135,8 @@ export default function LandingPage() {
         <a href="#features" onClick={() => setMobileOpen(false)}>Features</a>
         <a href="#about" onClick={() => setMobileOpen(false)}>About</a>
         <a href="#contact" onClick={() => setMobileOpen(false)}>Contact</a>
-        <a href={`${APP_URL}/login`} onClick={() => setMobileOpen(false)}>Login</a>
-        <a href={`${APP_URL}/login`} className="lp-mobile-cta" onClick={() => setMobileOpen(false)}>
+        <a href={`${APP_URL}/login?fresh=1`} onClick={() => setMobileOpen(false)}>Login</a>
+        <a href={`${APP_URL}/login?fresh=1`} className="lp-mobile-cta" onClick={() => setMobileOpen(false)}>
           Start Managing Your Herd
         </a>
       </div>
@@ -163,7 +162,7 @@ export default function LandingPage() {
           </p>
 
           <div className="lp-hero-ctas">
-            <a href={`${APP_URL}/login`} className="lp-btn-primary">Start Managing Your Herd</a>
+            <a href={`${APP_URL}/login?fresh=1`} className="lp-btn-primary">Start Managing Your Herd</a>
             <a href="#contact" className="lp-btn-secondary">Book a Demo</a>
           </div>
 
@@ -524,7 +523,7 @@ export default function LandingPage() {
               Start tracking your herd the way real operations actually work
             </p>
             <div className="lp-final-ctas">
-              <a href={`${APP_URL}/login`} className="lp-btn-primary">Start Managing Your Herd</a>
+              <a href={`${APP_URL}/login?fresh=1`} className="lp-btn-primary">Start Managing Your Herd</a>
               <a href="mailto:hello@cattleforce.com" className="lp-btn-secondary">Book a Demo</a>
             </div>
           </div>
@@ -542,7 +541,7 @@ export default function LandingPage() {
             <div className="lp-footer-links">
               <a href="#features">Features</a>
               <a href="#contact">Contact</a>
-              <a href={`${APP_URL}/login`}>Login</a>
+              <a href={`${APP_URL}/login?fresh=1`}>Login</a>
             </div>
 
             <div className="lp-footer-right">

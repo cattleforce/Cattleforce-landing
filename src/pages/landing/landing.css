@@ -304,14 +304,9 @@ body:has(.landing-page) {
 }
 
 .lp-nav-login {
-  padding: 9px 18px;
+  padding: 9px 24px;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--lp-text-muted);
-  border-radius: 50px;
-  transition: color 0.2s, background 0.2s;
 }
-.lp-nav-login:hover { color: var(--lp-text); background: var(--lp-surface); }
 
 .lp-nav-cta {
   padding: 9px 20px;
