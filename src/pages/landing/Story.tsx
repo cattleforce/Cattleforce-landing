@@ -65,6 +65,29 @@ export default function Story() {
     const onMove = (e: MouseEvent) => { if (touchOnly) return; const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top }
     const onOut = () => { mx = my = -9999 }
 
+    // phones: tap a dot to show that animal (the pointer-hover pick used on desktop doesn't exist on touch screens)
+    let tap = { i: -1, stg: -1, until: 0 }
+    let tx0 = 0, ty0 = 0, tt0 = 0
+    const onTapStart = (e: TouchEvent) => { const t = e.touches[0]; tx0 = t.clientX; ty0 = t.clientY; tt0 = performance.now() }
+    const onTapEnd = (e: TouchEvent) => {
+      if (!touchOnly || !lay) return
+      const t = e.changedTouches[0]
+      if (Math.hypot(t.clientX - tx0, t.clientY - ty0) > 10 || performance.now() - tt0 > 450) return // a swipe or long press, not a tap
+      if ((e.target as Element).closest?.('.cf2s-rail, .cf2s-mini, a, button')) return
+      const sec = secRef.current
+      const r = sec?.getBoundingClientRect(), sh = stickRef.current?.offsetHeight ?? innerHeight
+      if (!r || r.top > 1 || r.bottom < sh - 1) return // story not on screen
+      const cr = cv.getBoundingClientRect(), x = t.clientX - cr.left, y = t.clientY - cr.top
+      const stgNow = Math.round(p * 4)
+      let best = -1, bd = 30 * 30 // finger-sized hit area
+      for (let i = 0; i < N; i++) {
+        if (lay.half && (i & 1) && stgNow !== 3) continue // only dots that are actually drawn
+        const dx = cur[i * 2] - x, dy = cur[i * 2 + 1] - y, dd = dx * dx + dy * dy
+        if (dd < bd) { bd = dd; best = i }
+      }
+      if (best >= 0) tap = { i: best, stg: stgNow, until: performance.now() / 1000 + 8 }
+    }
+
     const go = () => { t0 = performance.now() / 1000; selT.current = t0 + 2.2; ready = true; push({ ready: true }) }
     const goMaybe = () => {
       if (ready || !fontsOK || goQ) return
@@ -214,7 +237,8 @@ export default function Story() {
       const stg = Math.round(s), hov = near >= 0
       let sel = selNow
       if (stg !== lastStg) { lastStg = stg; selT.current = 0 }
-      if (hov) { sel = near; selT.current = n + 1.2; if (near !== selNow) selStart = n }
+      if (tap.i >= 0 && n < tap.until && stg === tap.stg) { sel = tap.i; selT.current = tap.until; if (sel !== selNow) selStart = n }
+      else if (hov) { sel = near; selT.current = n + 1.2; if (near !== selNow) selStart = n }
       else if (n > selT.current && n > t0 + 2) { sel = pick(stg); selT.current = n + (stg === 4 ? 1e6 : 2.8); selStart = n }
       const d = DOTS[sel]
       if (d && n > t0 + 1.8) {
@@ -275,12 +299,15 @@ export default function Story() {
     const ro = new ResizeObserver(resize)
     ro.observe(cv)
     window.addEventListener('mousemove', onMove)
+    window.addEventListener('touchstart', onTapStart, { passive: true })
+    window.addEventListener('touchend', onTapEnd, { passive: true })
     document.addEventListener('mouseleave', onOut)
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => {
       cancelAnimationFrame(raf); ro.disconnect()
       window.removeEventListener('mousemove', onMove); document.removeEventListener('mouseleave', onOut)
+      window.removeEventListener('touchstart', onTapStart); window.removeEventListener('touchend', onTapEnd)
       window.removeEventListener('scroll', onScroll)
     }
   }, [heroReady])
@@ -294,22 +321,22 @@ export default function Story() {
   }
 
   // animate the page scroll to a scroll position (px). soft = the gentle ease-out used when the page settles after normal scrolling.
-  const goY = useCallback((to: number, soft = false) => {
+  const goY = useCallback((to: number, soft = false, fast = false) => {
     const el = secRef.current
     if (!el) return
     cancelAnimationFrame(step.current.raf)
     const from = scrollY, dist = Math.abs(to - from)
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const dur = reduce ? 1 : soft ? Math.max(450, Math.min(950, (dist / innerHeight) * 800)) : Math.max(650, Math.min(1100, (dist / innerHeight) * 850))
+    const dur = reduce ? 1 : fast ? Math.max(420, Math.min(760, (dist / innerHeight) * 380)) : soft ? Math.max(450, Math.min(950, (dist / innerHeight) * 800)) : Math.max(650, Math.min(1100, (dist / innerHeight) * 850))
     const t0 = performance.now()
     step.current.busy = true
     // touch screens: freeze native scrolling (and any fling momentum) while the step animates and holds, so it can't carry past the target
     if (matchMedia('(pointer: coarse)').matches) {
       document.documentElement.style.overflow = 'hidden'
       clearTimeout(step.current.unlock)
-      step.current.unlock = window.setTimeout(() => { document.documentElement.style.overflow = '' }, dur + (soft ? 150 : 650))
+      step.current.unlock = window.setTimeout(() => { document.documentElement.style.overflow = '' }, dur + (fast ? 200 : soft ? 150 : 650))
     }
-    step.current.lockUntil = t0 + dur + (soft ? 150 : 650) // short hold after arriving so what is on screen can be seen before the next move
+    step.current.lockUntil = t0 + dur + (fast ? 200 : soft ? 150 : 650) // short hold after arriving so what is on screen can be seen before the next move
     const ease = soft ? (t: number) => -(Math.cos(Math.PI * t) - 1) / 2 : (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
     const tick = (now: number) => {
       const k = Math.min(1, (now - t0) / dur)
@@ -320,9 +347,9 @@ export default function Story() {
     step.current.raf = requestAnimationFrame(tick)
   }, [])
 
-  const goCh = useCallback((c: number, soft = false) => {
+  const goCh = useCallback((c: number, soft = false, fast = false) => {
     if (!secRef.current) return
-    goY(chapterY(c), soft)
+    goY(chapterY(c), soft, fast)
   }, [goY])
 
   useEffect(() => {
@@ -375,15 +402,30 @@ export default function Story() {
     }
 
     // touch: one swipe = one chapter
-    let y0 = 0, stepped = false, claim = false
-    const onTouchStart = (e: TouchEvent) => { y0 = e.touches[0].clientY; stepped = false; claim = false }
+    let y0 = 0, stepped = false, claim = false, tStart = 0, lastDy = 0
+    const onTouchStart = (e: TouchEvent) => { y0 = e.touches[0].clientY; stepped = false; claim = false; tStart = performance.now(); lastDy = 0 }
     // true while the last chapter (or the story's tail) is on screen and the typed text has not been reached yet
     const beforeManifesto = () => {
       const st = secRef.current?.getBoundingClientRect(), man = document.getElementById('manifesto')?.getBoundingClientRect()
       const sh = stickRef.current?.offsetHeight ?? innerHeight
       return !!st && !!man && st.top <= 1 && st.bottom <= sh + 2 && man.top > 24
     }
+    // true while the typed text is on screen and the product section has not been reached yet
+    const inManifesto = () => {
+      const man = document.getElementById('manifesto')?.getBoundingClientRect(), prod = document.getElementById('product')?.getBoundingClientRect()
+      return !!man && !!prod && man.top <= 24 && man.bottom > 0 && prod.top > 24
+    }
     const onTouchMove = (e: TouchEvent) => {
+      if (inManifesto() && y0 - e.touches[0].clientY > 0) {
+        // swiping down past the typed text: land exactly on the product section, then scrolling is normal again
+        e.preventDefault()
+        if (!stepped && !locked() && y0 - e.touches[0].clientY >= 22) {
+          stepped = true; claim = true
+          const prod = document.getElementById('product')!
+          goY(prod.getBoundingClientRect().top + scrollY, false)
+        }
+        return
+      }
       if (beforeManifesto() && y0 - e.touches[0].clientY > 0) {
         // swiping down out of the story: stop exactly on the typed text instead of flinging past it
         e.preventDefault()
@@ -404,21 +446,39 @@ export default function Story() {
         claim = true
       }
       e.preventDefault() // we own this gesture: the page must not scroll on its own
+      lastDy = dy
       if (stepped || locked() || Math.abs(dy) < 22) return
-      const d = decide(dy > 0 ? 1 : -1)
-      stepped = true
-      if (d) goCh(d.settle)
+      // give a flick a moment to show how fast it is before choosing how far to go
+      if (performance.now() - tStart < 120 && Math.abs(dy) < 150) return
+      fire(dy)
     }
+    // one swipe = one chapter; an aggressive flick (fast and long) speeds through several, in either direction
+    const fire = (dy: number) => {
+      if (stepped) return
+      stepped = true
+      const dir = dy > 0 ? 1 : -1
+      const v = Math.abs(dy) / Math.max(1, performance.now() - tStart) // px per ms
+      const aggressive = v >= 2 && Math.abs(dy) >= 150
+      const d = decide(dir)
+      if (!d) return
+      if (aggressive && wasPinned) {
+        const n = v >= 3.6 ? 3 : 2
+        goCh(Math.max(0, Math.min(4, current() + dir * n)), false, true)
+      } else goCh(d.settle)
+    }
+    const onTouchEnd = () => { if (claim && !stepped && !locked() && Math.abs(lastDy) >= 22) fire(lastDy) }
     const onScrollState = () => { if (!pinned()) wasPinned = false }
 
     window.addEventListener('scroll', onScrollIdle, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('scroll', onScrollState)
       cancelAnimationFrame(stepState.raf)
       clearTimeout(stepState.unlock)
@@ -490,7 +550,7 @@ export default function Story() {
         <div className="cf2s-text" style={{ top: narrow ? '72px' : '0px', height: narrow ? '44vh' : '100vh', width: narrow ? 'calc(100% - 32px)' : 'min(440px, 31vw)' }}>
           <div className="cf2s-c0" style={{ width: narrow ? '100%' : 'min(760px, 52vw)', ...c0, opacity: (Number(c0.opacity) * inO).toFixed(3) }}>
             <h1>Here&apos;s how we make a<br /><em>difference</em></h1>
-            <p>For representational purpose, each dot<br />represents a single animal in your herd.</p>
+            <p>For representational purpose, each dot<br />represents an animal in your herd.</p>
           </div>
 
           <div className="cf2s-ch" style={ch(1)}>
