@@ -3,9 +3,24 @@ import logoWhite from '../../assets/new/logo-lockup-white.png'
 import logoBlack from '../../assets/new/logo-lockup-black.png'
 import HeroFrames from './HeroFrames'
 import { clamp } from './herd'
+import { setLang, tx, useLang } from '../../i18n'
 
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'https://app.cattleforce.in'
 const NAV = [['Product', '#product'], ['Features', '#features'], ['Testimonials', '#field'], ['Questions', '#faq']]
+
+/** EN | ES switch used in the navbar (desktop bar and phone bar). */
+function LangToggle() {
+  const lang = useLang()
+  return (
+    <div className="cf2n-lang" role="group" aria-label={tx('Language')}>
+      {([['en', 'EN', 'English'], ['es', 'ES', 'Español']] as const).map(([code, label, name]) => (
+        <button key={code} type="button" lang={code} aria-label={name} aria-pressed={lang === code} className={lang === code ? 'on' : ''} onClick={() => setLang(code)}>{label}</button>
+      ))}
+    </div>
+  )
+}
+// the desktop bar needs room for the language switch and the longer Spanish labels
+const DESK_MIN = 1180
 const SHADOW = '0 0 24px rgba(34,42,53,0.06), 0 1px 1px rgba(0,0,0,0.05), 0 0 0 1px rgba(34,42,53,0.04), 0 0 4px rgba(34,42,53,0.08), 0 16px 68px rgba(47,48,55,0.05), 0 1px 0 rgba(255,255,255,0.1) inset'
 
 
@@ -58,11 +73,12 @@ export function RippleLayer({ rgb, maxA }: { rgb: string; maxA: number }) {
 /* ── Navbar (resizable pill) ────────────────────────────── */
 
 export function Navbar() {
+  useLang()
   const [scrolled, setScrolled] = useState(false)
   const [hov, setHov] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
-  const [desk, setDesk] = useState(() => innerWidth >= 1024)
+  const [desk, setDesk] = useState(() => innerWidth >= DESK_MIN)
 
   useEffect(() => {
     let last = scrollY
@@ -80,7 +96,7 @@ export function Navbar() {
       else if (y < last - 4) setHidden(false) // scrolling up: show the short pill
       last = y
     }
-    const onResize = () => setDesk(innerWidth >= 1024)
+    const onResize = () => setDesk(innerWidth >= DESK_MIN)
     onScroll()
     addEventListener('scroll', onScroll, { passive: true })
     addEventListener('resize', onResize)
@@ -97,7 +113,7 @@ export function Navbar() {
   const light = false // the intro is now a dark video hero, so the nav always uses its light-on-dark variant
   const mo = open && !desk
   const logo = (h: number) => (
-    <a href="#intro" aria-label="Cattle Force home" className="cf2n-logo">
+    <a href="#intro" aria-label={tx('Cattle Force home')} className="cf2n-logo">
       <span style={{ position: 'relative', display: 'block' }}>
         <img src={logoWhite} alt="Cattle Force" style={{ height: h, opacity: light ? 0 : 1 }} />
         <img src={logoBlack} alt="" aria-hidden="true" style={{ height: h, opacity: light ? 1 : 0, position: 'absolute', left: 0, top: 0 }} />
@@ -125,13 +141,14 @@ export function Navbar() {
             {NAV.map(([label, href], i) => (
               <a key={href} href={href} onMouseEnter={() => setHov(i)} style={{ color: light ? '#262524' : '#d4d4d4' }}>
                 <span aria-hidden="true" style={{ background: light ? 'rgba(15,14,13,0.06)' : '#262626', opacity: hov === i ? 1 : 0 }} />
-                <span style={{ position: 'relative', zIndex: 20 }}>{label}</span>
+                <span style={{ position: 'relative', zIndex: 20 }}>{tx(label)}</span>
               </a>
             ))}
           </div>
           <div className="cf2n-actions">
-            <a href={`${APP_URL}/login?fresh=1`} className="cf2n-login" style={{ color: light ? '#0f0e0d' : '#ffffff' }}>Login</a>
-            <a href="#demo" className="cf2n-cta" style={{ background: light ? '#0f0e0d' : '#ffffff', color: light ? '#ffffff' : '#000000' }}>Contact Us</a>
+            <LangToggle />
+            <a href={`${APP_URL}/login?fresh=1`} className="cf2n-login" style={{ color: light ? '#0f0e0d' : '#ffffff' }}>{tx('Login')}</a>
+            <a href="#demo" className="cf2n-cta" style={{ background: light ? '#0f0e0d' : '#ffffff', color: light ? '#ffffff' : '#000000' }}>{tx('Contact Us')}</a>
           </div>
         </div>
       ) : (
@@ -140,17 +157,20 @@ export function Navbar() {
           <span className={`cf2n-aurora${scrolled ? ' on' : ''}`} aria-hidden="true" />
           <div className="cf2n-mrow">
             {logo(31.5)}
-            <button aria-label={mo ? 'Close menu' : 'Open menu'} aria-expanded={mo} onClick={() => setOpen(v => !v)} style={{ color: light ? '#0f0e0d' : '#ffffff' }}>
+            <div className="cf2n-mright">
+            <LangToggle />
+            <button className="cf2n-burger" aria-label={tx(mo ? 'Close menu' : 'Open menu')} aria-expanded={mo} onClick={() => setOpen(v => !v)} style={{ color: light ? '#0f0e0d' : '#ffffff' }}>
               {mo
                 ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18" /><path d="M6 6l12 12" /></svg>
                 : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /></svg>}
             </button>
+            </div>
           </div>
           <div className="cf2n-panel" style={{ opacity: mo ? 1 : 0, pointerEvents: mo ? 'auto' : 'none' }}>
-            {NAV.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}
+            {NAV.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{tx(label)}</a>)}
             <div>
-              <a href={`${APP_URL}/login?fresh=1`} onClick={() => setOpen(false)}>Login</a>
-              <a href="#demo" onClick={() => setOpen(false)}>Contact Us</a>
+              <a href={`${APP_URL}/login?fresh=1`} onClick={() => setOpen(false)}>{tx('Login')}</a>
+              <a href="#demo" onClick={() => setOpen(false)}>{tx('Contact Us')}</a>
             </div>
           </div>
         </div>
@@ -170,6 +190,7 @@ const mag = (e: React.MouseEvent<HTMLElement>) => {
 const magOut = (e: React.MouseEvent<HTMLElement>) => { e.currentTarget.style.transform = 'translate(0,0)' }
 
 export function Intro() {
+  useLang()
   // after the video has played and frozen on its last frame, a soft blurred tint fades in so the copy stays readable
   const [tinted, setTinted] = useState(() => !!(window as unknown as { __cfHeroEnded?: boolean }).__cfHeroEnded)
   useEffect(() => {
@@ -184,20 +205,20 @@ export function Intro() {
       <div className={`cf2i-tint${tinted ? ' on' : ''}`} aria-hidden="true" />
       <RippleLayer rgb="104,198,164" maxA={0.13} />
       <div className="cf2i-content">
-        <h1 className="cf2i-h1">The operating system for<br /><em>modern cattle farms.</em></h1>
-        <p className="cf2i-sub">A complete cattle management system built to track every animal,{' '}<br />every event, and every outcome.</p>
+        <h1 className="cf2i-h1">{tx('The operating system for')}<br /><em>{tx('modern cattle farms.')}</em></h1>
+        <p className="cf2i-sub">{tx('A complete cattle management system built to track every animal,')}{' '}<br />{tx('every event, and every outcome.')}</p>
         <div className="cf2i-row">
           <a href="#demo" className="cf2i-primary" onMouseMove={mag} onMouseLeave={magOut}>
-            <span>Book a demo</span>
+            <span>{tx('Book a demo')}</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
           </a>
           <button className="cf2i-secondary" onMouseMove={mag} onMouseLeave={magOut} onClick={() => window.dispatchEvent(new Event('cf:story'))}>
-            <span>See how it works</span>
+            <span>{tx('See how it works')}</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 5v14" /><path d="m19 12-7 7-7-7" /></svg>
           </button>
         </div>
         <div className="cf2i-trust">
-          <p className="cf2i-trust-label">Trusted by high-volume cattle operations across the Americas, Europe, and Asia</p>
+          <p className="cf2i-trust-label">{tx('Trusted by high-volume cattle operations across the Americas, Europe, and Asia')}</p>
           <div className="cf2i-logos">
             {[['◆', 'Alta Terra'], ['⊕', 'Pampa Group'], ['✸', 'Hacienda la Esmeralda'], ['◎', 'Lakewood Farms']].map(([icon, name]) => (
               <span key={name}><i aria-hidden="true">{icon}</i>{name}</span>

@@ -13,19 +13,20 @@ body { background: transparent !important; margin: 0; -webkit-font-smoothing: an
 
 /* navbar */
 .cf2n { position: fixed; top: 0; left: 0; right: 0; z-index: 40; width: 100%; pointer-events: none; }
-.cf2n-bar { position: relative; z-index: 60; pointer-events: auto; margin: 0 auto; min-width: 960px; max-width: 1360px; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-radius: 9999px; transition: width .8s cubic-bezier(.22,.8,.3,1), transform .8s cubic-bezier(.22,.8,.3,1), background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
+.cf2n-bar { position: relative; z-index: 60; pointer-events: auto; margin: 0 auto; min-width: 1120px; max-width: 1360px; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-radius: 9999px; transition: width .8s cubic-bezier(.22,.8,.3,1), transform .8s cubic-bezier(.22,.8,.3,1), background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
 .cf2n-logo { position: relative; z-index: 20; margin-right: 16px; display: flex; align-items: center; padding: 4px 8px; }
 .cf2n-logo img { display: block; width: auto; transition: opacity .3s ease; }
-.cf2n-links { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 500; pointer-events: none; }
-.cf2n-links a { position: relative; padding: 12px 22px; pointer-events: auto; transition: color .3s ease; }
+.cf2n-links { position: relative; min-width: 0; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 16px; font-weight: 500; pointer-events: none; }
+.cf2n-links a { position: relative; white-space: nowrap; padding: 12px 18px; pointer-events: auto; transition: color .3s ease; }
 .cf2n-links a > span:first-child { position: absolute; inset: 0; border-radius: 9999px; transition: opacity .2s; }
-.cf2n-actions { position: relative; z-index: 20; display: flex; align-items: center; gap: 18px; }
-.cf2n-login, .cf2n-cta { display: inline-block; padding: 12px 22px; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; transition: transform .2s ease; }
+.cf2n-actions { position: relative; z-index: 20; display: flex; align-items: center; gap: 14px; }
+.cf2n-login, .cf2n-cta { display: inline-block; white-space: nowrap; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; transition: transform .2s ease; }
 .cf2n-login:hover, .cf2n-cta:hover { transform: translateY(-2px); }
 .cf2n-cta { box-shadow: 0 0 24px rgba(34,42,53,.06), 0 1px 1px rgba(0,0,0,.05), 0 0 0 1px rgba(34,42,53,.04), 0 0 4px rgba(34,42,53,.08), 0 16px 68px rgba(47,48,55,.05), 0 1px 0 rgba(255,255,255,.1) inset; }
 .cf2n-mbar { position: relative; z-index: 50; pointer-events: auto; margin: 0 auto; max-width: calc(100vw - 2rem); display: flex; flex-direction: column; align-items: center; transition: width .8s cubic-bezier(.22,.8,.3,1), padding .8s cubic-bezier(.22,.8,.3,1), border-radius .8s cubic-bezier(.22,.8,.3,1), transform .8s cubic-bezier(.22,.8,.3,1), background .3s ease; }
 .cf2n-mrow { display: flex; width: 100%; align-items: center; justify-content: space-between; }
-.cf2n-mrow button { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; }
+.cf2n-mright { display: flex; align-items: center; gap: 6px; }
+.cf2n-mrow .cf2n-burger { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; }
 .cf2n-panel { position: absolute; left: 0; right: 0; top: 76px; z-index: 50; display: flex; flex-direction: column; gap: 20px; padding: 36px 20px; border-radius: 8px; font-size: 18px; background: #0a0a0a; color: #d4d4d4; transition: opacity .3s ease; }
 .cf2n-panel > div { display: flex; width: 100%; flex-direction: column; gap: 16px; }
 .cf2n-panel > div a { padding: 12px 22px; border-radius: 8px; background: #fff; color: #000; font-size: 16px; font-weight: 700; text-align: center; }
@@ -187,3 +188,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid #68c6a4; outline-offs
 
 /* rounded edges on all CTAs (same 8px radius as the buttons in the phone menu) */
 .cf2i-primary, .cf2i-secondary, .cf2s-btn { border-radius: 8px; }
+
+/* page loader: blurred cover + small spinner until hero video and story animation are ready */
+.cf2-loader { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(15, 14, 13, 0.88); -webkit-backdrop-filter: blur(60px) saturate(0.6); backdrop-filter: blur(60px) saturate(0.6); transition: opacity .5s ease; }
+.cf2-loader.off { opacity: 0; pointer-events: none; }
+.cf2-loader-ring { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(243, 242, 242, 0.25); border-top-color: #68c6a4; animation: cf2-spin .8s linear infinite; }
+@keyframes cf2-spin { to { transform: rotate(360deg); } }
+
+/* language switch (EN | ES) */
+.cf2n-lang { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.3); font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.cf2n-lang button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 30px; min-width: 38px; padding: 0 8px; border-radius: 9999px; color: #d4d4d4; transition: background .25s ease, color .25s ease, opacity .2s ease; }
+.cf2n-lang button:hover { opacity: .7; }
+.cf2n-lang button.on { background: #fff; color: #000; opacity: 1; }
+.cf2n-lang button:focus-visible { outline: 2px solid #68c6a4; outline-offset: 2px; }
+
+/* Spanish copy runs longer: keep the intro headline on two lines and give the product URL chip room (desktop only) */
+@media (min-width: 761px) {
+  html[lang="es"] .cf2i-h1 { font-size: clamp(38px, min(5.2vw, 9.5vh), 80px); }
+}

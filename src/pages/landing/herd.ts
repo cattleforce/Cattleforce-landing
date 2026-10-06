@@ -1,3 +1,5 @@
+import { tx } from '../../i18n'
+
 /* Deterministic herd data for the dot-herd scroll story (ported from the design prototype). */
 
 export const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
@@ -40,7 +42,7 @@ export const CL = [[-0.24, -0.08], [0.04, 0.1], [0.27, -0.12], [-0.06, -0.26], [
 export const REL = ['Subject', 'Dam', 'Sire', 'Maternal granddam', 'Maternal grandsire', 'Paternal granddam', 'Paternal grandsire']
 export const MILK = [14.1, 14.4, 14.0, 14.6, 14.2, 14.5, 14.3, 14.7, 14.4, 14.2, 13.6, 13.1, 12.8, 12.5]
 export const VIEWS = ['Home', 'Lifecycle', 'Growth', 'Lineage', 'Today']
-export const fmtAge = (a: number) => (a < 12 ? Math.round(a) + ' months' : (a / 12).toFixed(1) + ' years')
+export const fmtAge = (a: number) => (a < 12 ? Math.round(a) + ' ' + tx('months') : (a / 12).toFixed(1) + ' ' + tx('years'))
 
 export interface Dot {
   i: number; tag: string; st: number; rank: number; age: number; breed: string; ev: string; cl: number

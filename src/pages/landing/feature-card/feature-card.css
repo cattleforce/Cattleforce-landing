@@ -1,0 +1,31 @@
+/* Required global CSS for FeatureCard. Import once (e.g. in globals.css or the component). */
+
+/* Animatable angle for the rotating conic glow border (Chrome/Edge/Safari 16.4+/Firefox 128+) */
+@property --cfA { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes cfSpin { to { --cfA: 360deg; } }
+
+/* Aurora blobs drift */
+@keyframes cfB1 { 0%,100% { transform: translate(-50%,-50%) scale(1); }    50% { transform: translate(-38%,-46%) scale(1.12); } }
+@keyframes cfB2 { 0%,100% { transform: translate(-50%,-50%) scale(1); }    50% { transform: translate(-64%,-40%) scale(1.18); } }
+@keyframes cfB3 { 0%,100% { transform: translate(-50%,-50%) scale(1.05); } 50% { transform: translate(-40%,-58%) scale(.9); } }
+@keyframes cfB4 { 0%,100% { transform: translate(-50%,-50%) scale(.95); }  50% { transform: translate(-58%,-44%) scale(1.15); } }
+
+/* Interaction states that can't be inline */
+.cf-tab { transition: background .3s ease, color .3s ease; }
+.cf-tab:not([aria-selected="true"]):hover { background: #f3f6f5 !important; }
+.cf-tab:focus-visible { outline: 2px solid #68c6a4; outline-offset: 2px; }
+.cf-row { transition: background .2s ease; }
+.cf-row:hover { background: #f7f9f8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-glow, .cf-blob { animation: none !important; }
+}
+
+.cf-chips::-webkit-scrollbar { display: none; }
+
+/* header aurora: the nav bar's soft drifting glow, in grey on a white header */
+.cf-aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.cf-aurora::before, .cf-aurora::after { content: ''; position: absolute; border-radius: 50%; filter: blur(20px); will-change: transform; }
+.cf-aurora::before { top: -90%; left: -8%; width: 52%; height: 280%; background: radial-gradient(ellipse at center, rgba(120,126,124,.42), rgba(120,126,124,0) 68%); animation: cf2nAuroraA 9s ease-in-out infinite alternate; }
+.cf-aurora::after { top: -110%; right: -10%; width: 58%; height: 300%; background: radial-gradient(ellipse at center, rgba(150,155,153,.38), rgba(150,155,153,0) 68%); animation: cf2nAuroraB 12s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .cf-aurora::before, .cf-aurora::after { animation: none; } }

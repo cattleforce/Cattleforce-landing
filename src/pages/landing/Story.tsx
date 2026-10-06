@@ -3,6 +3,7 @@ import {
   ALERT, BYST, DOTS, MILK, N, NEXT, PED, PEDSLOT, RED, REL, SIG, SLOW, STG, VIEWS,
   baseW, clamp, computeLayout, eIO, fmtAge, type Layout,
 } from './herd'
+import { tx, useLang } from '../../i18n'
 
 const Label = ({ children, color = '#68c6a4' }: { children: React.ReactNode; color?: string }) => (
   <span className="cf2s-label"><span aria-hidden="true" style={{ background: color }} />{children}</span>
@@ -16,6 +17,7 @@ interface Rec {
 interface UI { ready: boolean; narrow: boolean; p: number; now: number; sel: number; hov: boolean; stg: number; selT: number }
 
 export default function Story() {
+  useLang()
   const secRef = useRef<HTMLElement>(null)
   const cvRef = useRef<HTMLCanvasElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -24,19 +26,7 @@ export default function Story() {
   const railRef = useRef<HTMLElement>(null)
   const [ui, setUi] = useState<UI>({ ready: false, narrow: false, p: 0, now: 0, sel: 0, hov: false, stg: 0, selT: 0 })
   const selT = useRef(0)
-  // the dot animation waits until the hero video has finished playing (and frozen on its last frame), so it can't steal frames from it.
-  // A safety timeout means it can never stay blocked.
-  const [heroReady, setHeroReady] = useState(() => !!(window as unknown as { __cfHeroEnded?: boolean }).__cfHeroEnded)
   useEffect(() => {
-    if (heroReady) return
-    const on = () => setHeroReady(true)
-    window.addEventListener('cf:hero-ended', on)
-    const t = window.setTimeout(on, 9000)
-    return () => { window.removeEventListener('cf:hero-ended', on); clearTimeout(t) }
-  }, [heroReady])
-
-  useEffect(() => {
-    if (!heroReady) return
     const cv = cvRef.current!
     const ctx = cv.getContext('2d')!
     let lay: Layout | null = null
@@ -101,7 +91,12 @@ export default function Story() {
       goMaybe()
       push({ p })
     }
-    ;(document.fonts?.ready ?? Promise.resolve()).then(() => { fontsOK = true; goMaybe() })
+    ;(document.fonts?.ready ?? Promise.resolve()).then(() => {
+      fontsOK = true; goMaybe()
+      // tell the page loader the story animation is prepared (fonts in, canvas laid out)
+      ;(window as unknown as { __cfStoryReady?: boolean }).__cfStoryReady = true
+      window.dispatchEvent(new Event('cf:story-ready'))
+    })
 
     const pick = (stg: number): number => {
       const one = (): number => {
@@ -124,7 +119,7 @@ export default function Story() {
       if (!lay || !sec) return
       const sr = sec.getBoundingClientRect()
       if (sr.bottom < 0 || sr.top > innerHeight) return // off-screen: don't spend the main thread (keeps the hero video smooth)
-      const { L, lab: lb, SQ, SZ, rankOf, counts, slowCount, half } = lay
+      const { L, lab: lb, SQ, SZ, rankOf, counts, half } = lay
       const s = p * 4, a = Math.min(3, Math.floor(s)), t = clamp((s - a - 0.15) / 0.7)
       const wk = (k: number) => clamp(1 - Math.abs(s - k) * 2.2)
       const w1 = wk(1), w2 = wk(2), w3 = wk(3), w4 = wk(4)
@@ -135,7 +130,7 @@ export default function Story() {
       if (w1 > 0.01) {
         STG.forEach((g, si) => {
           const x = lb.sx[si], top = lb.base - Math.ceil(counts[si] / lb.u) * lb.s2
-          ctx.fillStyle = `rgba(243,242,242,${0.6 * w1})`; ctx.font = mono; ctx.fillText(g[0].toUpperCase(), x, lb.base + 18)
+          ctx.fillStyle = `rgba(243,242,242,${0.6 * w1})`; ctx.font = mono; ctx.fillText(tx(g[0]).toUpperCase(), x, lb.base + 18)
           ctx.fillStyle = `rgba(243,242,242,${w1})`; ctx.font = '400 26px "Instrument Serif", serif'
           ctx.fillText(String(Math.round(counts[si] * clamp(w1 * 1.4))), x, top - 10)
         })
@@ -147,16 +142,15 @@ export default function Story() {
         ctx.strokeStyle = `rgba(243,242,242,${0.35 * w2})`; ctx.beginPath()
         ctx.moveTo(lb.gL, lb.gB - lb.gh); ctx.lineTo(lb.gL, lb.gB); ctx.lineTo(lb.gL + lb.gw, lb.gB); ctx.stroke()
         ctx.fillStyle = `rgba(243,242,242,${0.55 * w2})`; ctx.font = mono; ctx.textAlign = 'center'
-        ;[0, 2, 4, 6, 8].forEach(y => ctx.fillText(y + 'Y', X(y * 12), lb.gB + 16))
+        ;[0, 2, 4, 6, 8].forEach(y => ctx.fillText(y + tx('Y'), X(y * 12), lb.gB + 16))
         ctx.textAlign = 'right'
         ;[0, 300, 600, 900].forEach(kg => ctx.fillText(kg + '', lb.gL - 8, Y(kg) + 3)); ctx.textAlign = 'left'
         const mm = 96 * clamp(w2 * 1.3 - 0.15)
         ctx.strokeStyle = `rgba(104,198,164,${0.9 * w2})`; ctx.lineWidth = 1.5; ctx.beginPath()
         for (let m = 0; m <= mm; m++) { const yy = Y(baseW(m)); if (m) ctx.lineTo(X(m), yy); else ctx.moveTo(X(m), yy) }
         ctx.stroke()
-        ctx.fillStyle = `rgba(104,198,164,${w2})`; ctx.fillText('EXPECTED GROWTH', X(mm) - 110, Y(baseW(mm)) - 12)
-        ctx.textAlign = 'right'; ctx.fillStyle = `rgba(243,242,242,${0.8 * w2})`
-        ctx.fillText(slowCount + ' BELOW THE CURVE', lb.gL + lb.gw, lb.gB - lb.gh + 4); ctx.textAlign = 'left'
+        ctx.fillStyle = `rgba(104,198,164,${w2})`; const egl = tx('EXPECTED GROWTH'); ctx.fillText(egl, X(mm) - Math.max(110, ctx.measureText(egl).width + 20), Y(baseW(mm)) - 12)
+        ctx.textAlign = 'left'
       }
 
       const La = L[a], Lb = L[a + 1], act0 = n - t0
@@ -179,7 +173,7 @@ export default function Story() {
         ctx.strokeStyle = `rgba(243,242,242,${0.06 * w3})`; ctx.lineWidth = 1
         for (let k = 1; k <= 8; k++) { ctx.beginPath(); ctx.arc(lb.pcx, lb.pcy, lb.ring(k), 0, Math.PI * 2); ctx.stroke() }
         ctx.fillStyle = `rgba(243,242,242,${0.5 * w3})`; ctx.font = mono; ctx.textAlign = 'center'
-        ;['PARENTS', 'GRANDPARENTS', 'GREAT-GRANDPARENTS'].forEach((l, k) => ctx.fillText(l, lb.pcx, lb.pcy - lb.ring(k + 1) - 5))
+        ;['PARENTS', 'GRANDPARENTS', 'GREAT-GRANDPARENTS'].forEach((l, k) => ctx.fillText(tx(l), lb.pcx, lb.pcy - lb.ring(k + 1) - 5))
         ctx.textAlign = 'left'
         ctx.strokeStyle = `rgba(243,242,242,${0.16 * w3})`; ctx.beginPath()
         for (let sl = 1; sl < 255; sl++) {
@@ -310,7 +304,7 @@ export default function Story() {
       window.removeEventListener('touchstart', onTapStart); window.removeEventListener('touchend', onTapEnd)
       window.removeEventListener('scroll', onScroll)
     }
-  }, [heroReady])
+  }, [])
 
   // ── stepped scrolling: one scroll / swipe moves exactly one chapter, then the view holds ──
   const step = useRef({ raf: 0, lockUntil: 0, busy: false, unlock: 0 })
@@ -504,41 +498,41 @@ export default function Story() {
   const inO = ready ? 1 : 0
 
   const rec: Rec = (() => {
-    const d = DOTS[sel], red = '#ec3013'
+    const d = DOTS[sel], red = '#ec3013', T = tx
     const prog = hov ? '100%' : (clamp(1 - (selTime - now) / 2.8) * 100).toFixed(1) + '%'
-    const base = { tag: d.tag, acc: '#68c6a4', bd: 'rgba(243,242,242,0.16)', badge: 'Live', footC: '#adcfc5', spark: false, bars: [] as { h: string; c: string }[], prog }
+    const base = { tag: d.tag, acc: '#68c6a4', bd: 'rgba(243,242,242,0.16)', badge: T('Live'), footC: '#adcfc5', spark: false, bars: [] as { h: string; c: string }[], prog }
     const adg = ((d.w - 35) / Math.max(1, d.age * 30.4)).toFixed(2)
     if (stg === 4 && sel === ALERT && !hov) {
-      return { ...base, mode: 'Alert · 06:10', badge: 'Watch', acc: red, bd: 'rgba(236,48,19,0.6)', prog: '100%', spark: true,
-        f: [{ k: 'Yield today', v: '12.5 L' }, { k: '7-day average', v: '14.2 L' }, { k: 'Lactation', v: '3rd' }, { k: 'Group', v: '3 · Paddock B' }],
+      return { ...base, mode: T('Alert · 06:10'), badge: T('Watch'), acc: red, bd: 'rgba(236,48,19,0.6)', prog: '100%', spark: true,
+        f: [{ k: T('Yield today'), v: '12.5 L' }, { k: T('7-day average'), v: '14.2 L' }, { k: T('Lactation'), v: T('3rd') }, { k: T('Group'), v: T('3 · Paddock B') }],
         bars: MILK.map((m, i) => ({ h: (((m - 11.5) / 3.4) * 100).toFixed(0) + '%', c: i >= 10 ? red : 'rgba(243,242,242,0.6)' })),
-        foot: 'Milk yield down 12%. Check before evening milking.', footC: '#ff9a80' }
+        foot: T('Milk yield down 12%. Check before evening milking.'), footC: '#ff9a80' }
     }
     if (stg === 2 && !hov) {
-      return { ...base, mode: 'Growth', badge: d.slow ? 'Below curve' : 'On track',
-        f: [{ k: 'Age', v: fmtAge(d.age) }, { k: 'Weight', v: Math.round(d.w) + ' kg' }, { k: 'Daily gain', v: adg + ' kg' }, { k: 'vs curve', v: (d.dev > 0 ? '+' : '') + d.dev.toFixed(0) + '%' }],
-        foot: d.slow ? 'Flagged for a feed and health check.' : 'Growing in line with the herd.' }
+      return { ...base, mode: T('Growth'), badge: d.slow ? T('Below curve') : T('On track'),
+        f: [{ k: T('Age'), v: fmtAge(d.age) }, { k: T('Weight'), v: Math.round(d.w) + ' kg' }, { k: T('Daily gain'), v: adg + ' kg' }, { k: T('vs curve'), v: (d.dev > 0 ? '+' : '') + d.dev.toFixed(0) + '%' }],
+        foot: d.slow ? T('Flagged for a feed and health check.') : T('Growing in line with the herd.') }
     }
     if (stg === 3 && !hov) {
       const sl = PEDSLOT[sel]
-      return { ...base, mode: 'Lineage · ' + (sl < 7 ? REL[sl] : 'Ancestor'),
-        f: [{ k: 'Breed', v: d.breed }, { k: 'Generation', v: sl === 0 ? 'Subject' : String(31 - Math.clz32(sl + 1)) }, { k: 'Sex', v: sl === 0 || sl % 2 === 1 ? 'Female' : 'Male' }, { k: 'Age', v: fmtAge(d.age) }],
-        foot: sl === 0 ? 'Dam IN-' + (1000 + PED[1]) + ' · Sire IN-' + (1000 + PED[2]) : REL[Math.min(sl, 6)] + ' of IN-1042' }
+      return { ...base, mode: T('Lineage · ') + (sl < 7 ? T(REL[sl]) : T('Ancestor')),
+        f: [{ k: T('Breed'), v: T(d.breed) }, { k: T('Generation'), v: sl === 0 ? T('Subject') : String(31 - Math.clz32(sl + 1)) }, { k: T('Sex'), v: T(sl === 0 || sl % 2 === 1 ? 'Female' : 'Male') }, { k: T('Age'), v: fmtAge(d.age) }],
+        foot: sl === 0 ? T('Dam') + ' IN-' + (1000 + PED[1]) + ' · ' + T('Sire') + ' IN-' + (1000 + PED[2]) : T(REL[Math.min(sl, 6)]) + T(' of IN-1042') }
     }
     if (stg === 1 && !hov) {
-      return { ...base, mode: 'Lifecycle · ' + STG[d.st][0],
-        f: [{ k: 'Breed', v: d.breed }, { k: 'Stage', v: STG[d.st][1] }, { k: 'Age', v: fmtAge(d.age) }, { k: 'Weight', v: Math.round(d.w) + ' kg' }],
-        foot: 'Next: ' + NEXT[d.st] }
+      return { ...base, mode: T('Lifecycle · ') + T(STG[d.st][0]),
+        f: [{ k: T('Breed'), v: T(d.breed) }, { k: T('Stage'), v: T(STG[d.st][1]) }, { k: T('Age'), v: fmtAge(d.age) }, { k: T('Weight'), v: Math.round(d.w) + ' kg' }],
+        foot: T('Next: ') + T(NEXT[d.st]) }
     }
-    return { ...base, mode: hov ? 'Under cursor' : 'Tagging',
-      f: [{ k: 'Breed', v: d.breed }, { k: 'Stage', v: STG[d.st][1] }, { k: 'Age', v: fmtAge(d.age) }, { k: 'Weight', v: Math.round(d.w) + ' kg' }],
-      foot: 'Last: ' + d.ev }
+    return { ...base, mode: hov ? T('Under cursor') : T('Tagging'),
+      f: [{ k: T('Breed'), v: T(d.breed) }, { k: T('Stage'), v: T(STG[d.st][1]) }, { k: T('Age'), v: fmtAge(d.age) }, { k: T('Weight'), v: Math.round(d.w) + ' kg' }],
+      foot: T('Last: ') + T(d.ev) }
   })()
 
   const c0 = ch(0)
   const rail = VIEWS.map((l, c) => {
     const on = c === act, k = clamp(1 - Math.abs(s - c)), L = (a: number, b: number) => Math.round(a + (b - a) * k)
-    return { n: '0' + c, label: l, cur: on ? 'step' as const : undefined, color: `rgba(${L(243, 15)},${L(242, 14)},${L(242, 13)},${(0.62 + 0.38 * k).toFixed(3)})`, fw: k > 0.5 ? 700 : 500, no: (0.5 + 0.1 * k).toFixed(2), c }
+    return { n: '0' + c, label: tx(l), cur: on ? 'step' as const : undefined, color: `rgba(${L(243, 15)},${L(242, 14)},${L(242, 13)},${(0.62 + 0.38 * k).toFixed(3)})`, fw: k > 0.5 ? 700 : 500, no: (0.5 + 0.1 * k).toFixed(2), c }
   })
 
   return (
@@ -549,31 +543,31 @@ export default function Story() {
 
         <div className="cf2s-text" style={{ top: narrow ? '72px' : '0px', height: narrow ? '44vh' : '100vh', width: narrow ? 'calc(100% - 32px)' : 'min(440px, 31vw)' }}>
           <div className="cf2s-c0" style={{ width: narrow ? '100%' : 'min(760px, 52vw)', ...c0, opacity: (Number(c0.opacity) * inO).toFixed(3) }}>
-            <h1>Here&apos;s how we make a<br /><em>difference</em></h1>
-            <p>For representational purpose, each dot<br />represents an animal in your herd.</p>
+            <h1>{tx("Here's how we make a")}<br /><em>{tx('difference')}</em></h1>
+            <p>{tx('For representational purpose, each dot')}<br />{tx('represents an animal in your herd.')}</p>
           </div>
 
           <div className="cf2s-ch" style={ch(1)}>
-            <Label>01 — Lifecycle</Label>
-            <h2>The herd <em>sorts itself.</em></h2>
-            <p>Calves become heifers, heifers become cows, on their own as they age and calve. Weaning comes due on schedule, without anyone keeping count.</p>
+            <Label>{tx('01 — Lifecycle')}</Label>
+            <h2>{tx('The herd')} <em>{tx('sorts itself.')}</em></h2>
+            <p>{tx('Calves become heifers, heifers become cows, on their own as they age and calve. Weaning comes due on schedule, without anyone keeping count.')}</p>
           </div>
           <div className="cf2s-ch" style={ch(2)}>
-            <Label>02 — Growth</Label>
-            <h2>Logging weights gives you <em>insights.</em></h2>
-            <p>Log a weight and Cattle Force works out daily gain. Animals falling below the expected curve can be given the right care.</p>
+            <Label>{tx('02 — Growth')}</Label>
+            <h2>{tx('Logging weights gives you')} <em>{tx('insights.')}</em></h2>
+            <p>{tx('Log a weight and Cattle Force works out daily gain. Animals falling below the expected curve can be given the right care.')}</p>
           </div>
           <div className="cf2s-ch" style={ch(3)}>
-            <Label>03 — Lineage</Label>
-            <h2>Lineage <em>you can see.</em></h2>
-            <p>Dam, sire and every generation behind them, one tap from any animal. Breed with the whole family tree in view.</p>
+            <Label>{tx('03 — Lineage')}</Label>
+            <h2>{tx('Lineage', 'Un linaje')} <em>{tx('you can see.')}</em></h2>
+            <p>{tx('Dam, sire and every generation behind them, one tap from any animal. Breed with the whole family tree in view.')}</p>
           </div>
           <div className="cf2s-ch" style={ch(4)}>
-            <Label color="#ff7a5c">04 — Today</Label>
-            <h2>One of them <em style={{ color: '#ff9a80' }}>needs you.</em></h2>
-            <p>Cattle Force reads every record and flags alerts that need to be addressed on priority.</p>
+            <Label color="#ff7a5c">{tx('04 — Today')}</Label>
+            <h2>{tx('One of them')} <em style={{ color: '#ff9a80' }}>{tx('needs you.')}</em></h2>
+            <p>{tx('Cattle Force reads every record and flags alerts that need to be addressed on priority.')}</p>
             <a href="#demo" className="cf2s-btn">
-              <span>Book a demo</span>
+              <span>{tx('Book a demo')}</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
             </a>
           </div>
@@ -611,7 +605,7 @@ export default function Story() {
           </p>
         </div>
 
-        <nav ref={railRef} aria-label="Chapters" className="cf2s-rail" style={{ opacity: inO }}>
+        <nav ref={railRef} aria-label={tx('Chapters')} className="cf2s-rail" style={{ opacity: inO }}>
           <span data-rail-ind="1" aria-hidden="true" />
           {rail.map(it => (
             <button key={it.n} aria-current={it.cur} onClick={() => goCh(it.c)} style={{ color: it.color, fontWeight: it.fw }}>

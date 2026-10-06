@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import desktopSrc from '../../assets/hero-video/video_desktop.webm'
+import desktopSrc from '../../assets/hero-video/dji0140_desktop.webm'
 import mobileSrc from '../../assets/hero-video/video_mobile.webm'
 
 /* Hero background video. Plays once when the site is opened or reloaded, then stays frozen on its last frame (no loop). */
@@ -29,8 +29,14 @@ export default function HeroFrames() {
       // tell the rest of the page the hero video is loaded: the heavy dot animation starts only after this
       ;(window as unknown as { __cfHeroReady?: boolean }).__cfHeroReady = true
       window.dispatchEvent(new Event('cf:hero-ready'))
-      if (played || reduce) freeze()
-      else v.play().catch(() => freeze()) // autoplay blocked: show the last frame instead
+      // hold playback until the page loader has lifted, so the intro isn't spent behind it
+      const start = () => {
+        if (cancelled) return
+        if (played || reduce) freeze()
+        else v.play().catch(() => freeze()) // autoplay blocked: show the last frame instead
+      }
+      if ((window as unknown as { __cfLoaded?: boolean }).__cfLoaded) start()
+      else window.addEventListener('cf:loaded', start, { once: true })
     }
     v.addEventListener('canplaythrough', ready, { once: true })
     fetch(src)

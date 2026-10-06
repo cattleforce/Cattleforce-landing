@@ -4,7 +4,10 @@ import appDashboard from '../../assets/new/app-dashboard.png'
 import appAnimals from '../../assets/new/app-animals.png'
 import appPedigree from '../../assets/new/app-pedigree.png'
 import logoWhite from '../../assets/new/logo-lockup-white.png'
+import FeatureCard from './feature-card/FeatureCard'
 import { GridBackdrop, RippleLayer } from './Chrome'
+import { MAN_ES, MAN_ITAL_ES } from '../../i18n/es'
+import { tx, useLang } from '../../i18n'
 import './newsections.css'
 
 
@@ -12,7 +15,9 @@ import './newsections.css'
 
 const MAN =
   'Cattle Force replaces notebooks and spreadsheets with a smart platform that manages your herd, your team and your finances, so your whole farm runs as one.'
-const MAN_WORDS = MAN.split(' ').map((w, i, arr) => ({ w, pos: arr.slice(0, i).reduce((n, x) => n + x.length + 1, 0) }))
+const manWords = (s: string) => s.split(' ').map((w, i, arr) => ({ w, pos: arr.slice(0, i).reduce((n, x) => n + x.length + 1, 0) }))
+const MAN_WORDS = manWords(MAN)
+const MAN_WORDS_ES = manWords(MAN_ES)
 const MAN_ITAL = new Set(['runs', 'as', 'one.'])
 
 const SCREENS = [
@@ -21,37 +26,8 @@ const SCREENS = [
   { src: appPedigree, title: 'Pedigree' },
 ]
 
-const CMP: Record<string, string[]> = {
-  'Herd & Lifecycle': [
-    'Animal registry',
-    'Automated animal stage tracking',
-    'Automated, optimized weaning events',
-    'Offspring registry and promotion to adult',
-    'Pedigree and lineage',
-    'Breed composition tracking',
-    'Weight records and growth tracking (ADG)',
-    'Groups and locations',
-  ],
-  'Production & Breeding': [
-    'Reproduction tracking (AI/mating, pregnancy checks, calving)',
-    'Milk production logging and KPIs',
-  ],
-  Health: ['Veterinary and health events'],
-  Business: [
-    'Financial tracking',
-    'Inventory ledger with stock guards',
-    'Business partners (suppliers, customers, investors)',
-  ],
-  Operations: ['Task calendar and worker management', 'Resource management', 'File and document attachments'],
-  Insight: ['Dashboard with live alerts', 'Analytics', 'Notifications', 'CSV reports and data export'],
-  Platform: ['Configurable farm settings (thresholds, dropdowns)'],
-}
 
 const U = (id: string, w = 500) => `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
-const PHOTOS_A = ['photo-1440428099904-c6d459a7e7b5', 'photo-1636998980792-63f27ddea4e3', 'photo-1580570598977-4b2412d01bbc', 'photo-1503190766327-73a7d9e9e844', 'photo-1507103011901-e954d6ec0988'].map(i => U(i))
-const PHOTOS_B = ['photo-1567513068697-fca8c2af4528', 'photo-1596733430284-f7437764b1a9', 'photo-1592585897997-584ddf2fed6c', 'photo-1454179083322-198bb4daae41', 'photo-1583364428520-fa6c5013c0c3'].map(i => U(i))
-const ROT_A = [-6, 4, -9, 7, -3]
-const ROT_B = [5, -8, 3, -5, 9]
 
 const TESTI = [
   { name: 'Rosa Salgado', src: U('photo-1438761681033-6461ffad8d80', 1200), farm: 'Rancho Santa Elena', place: 'Jalisco', country: 'Mexico', role: 'Operations manager', quote: 'We used to reconcile three notebooks every Friday. Now the herd record is the same for the foreman, the vet and me, and it is right on the day it happens.' },
@@ -77,29 +53,6 @@ function Label({ children, dark }: { children: React.ReactNode; dark?: boolean }
       <span aria-hidden="true" />
       {children}
     </span>
-  )
-}
-
-function Check() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#235149" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 12.5l5 5L20 6.5" />
-    </svg>
-  )
-}
-
-function Card({ title, span, cls = '', children }: { title: string; span: number; cls?: string; children?: React.ReactNode }) {
-  const items = CMP[title]
-  return (
-    <div className={`cf2-card cf2-span${span} ${cls}`}>
-      <p className="cf2-card-title">{title}</p>
-      <ul className={`cf2-checks${title === 'Herd & Lifecycle' ? ' cf2-checks--wide' : ''}`}>
-        {items.map(x => (
-          <li key={x}><Check /><span>{x}</span></li>
-        ))}
-      </ul>
-      {children}
-    </div>
   )
 }
 
@@ -131,11 +84,16 @@ function useVisible<T extends HTMLElement>() {
 /* ── Manifesto (typewriter) ─────────────────────────────── */
 
 function Manifesto() {
+  const lang = useLang()
+  const es = lang === 'es'
   const ref = useRef<HTMLElement>(null)
   const [typed, setTyped] = useState(0)
   const started = useRef(false)
   const completed = useRef(false)
-  const total = MAN.length
+  const text = es ? MAN_ES : MAN
+  const words = es ? MAN_WORDS_ES : MAN_WORDS
+  const ital = es ? MAN_ITAL_ES : MAN_ITAL
+  const total = text.length
 
   useEffect(() => {
     let raf = 0
@@ -171,17 +129,19 @@ function Manifesto() {
   }, [total])
 
   useEffect(() => { if (typed >= total) completed.current = true }, [typed, total])
+  // switching language after the text has finished typing: show the new text in full straight away
+  useEffect(() => { if (completed.current) setTyped(total) }, [total])
 
   const done = typed >= total
   return (
     <section id="manifesto" ref={ref} className="cf2-manifesto">
       <div className="cf2-manifesto-stick">
-        <p className="cf2-manifesto-text" aria-label={MAN}>
-          {MAN_WORDS.map(({ w, pos }, i) => {
+        <p className="cf2-manifesto-text" aria-label={text}>
+          {words.map(({ w, pos }, i) => {
             const a = Math.max(0, Math.min(w.length, typed - pos))
             const hasCursor = !done && typed >= pos && typed <= pos + w.length
             return (
-              <span key={i} className={`cf2-mw${MAN_ITAL.has(w) ? ' cf2-mw--em' : ''}`} aria-hidden="true">
+              <span key={i} className={`cf2-mw${ital.has(w) ? ' cf2-mw--em' : ''}`} aria-hidden="true">
                 <span>{w.slice(0, a)}</span>
                 {hasCursor && <span className="cf2-cursor" />}
                 <span style={{ opacity: 0 }}>{w.slice(a)}</span>
@@ -197,6 +157,7 @@ function Manifesto() {
 /* ── Product screens ────────────────────────────────────── */
 
 function Product() {
+  useLang()
   const [ref, vis] = useVisible<HTMLDivElement>()
   const [i, setI] = useState(0)
   const [locked, setLocked] = useState(false)
@@ -221,32 +182,31 @@ function Product() {
       <GridBackdrop mask="ellipse 85% 75% at 50% 45%" bg="#f3f2f2" />
       <div className="cf2-wrap cf2-stack">
         <div className="cf2-head" data-rv>
-          <Label>The product</Label>
-          <h2 className="cf2-h2 cf2-h2--xl">Built around the <em>day's work.</em></h2>
+          <Label>{tx('The product')}</Label>
+          <h2 className="cf2-h2 cf2-h2--xl">{tx('Built around the')} <em>{tx("day's work.")}</em></h2>
         </div>
 
         <div ref={ref} className="cf2-frame-wrap">
+          <div aria-hidden="true" className="cf2-fglow" />
           <div className="cf2-frame">
-            <span className="cf2-br cf2-br--tl" /><span className="cf2-br cf2-br--tr" />
-            <span className="cf2-br cf2-br--bl" /><span className="cf2-br cf2-br--bb" />
             <div className="cf2-frame-bar">
               <div className="cf2-frame-dots"><i /><i /><i /></div>
-              <div className="cf2-frame-url">Real screens from the Cattle Force app.</div>
+              <div className="cf2-frame-url">{tx('Real screens from the Cattle Force app.')}</div>
             </div>
             <div className="cf2-frame-pad">
               <div className="cf2-screens">
                 {SCREENS.map((s, k) => (
-                  <img key={s.title} src={s.src} alt={`Cattle Force ${s.title} screen`} className={k === i ? 'on' : ''} />
+                  <img key={s.title} src={s.src} alt={tx(`Cattle Force ${s.title} screen`)} className={k === i ? 'on' : ''} />
                 ))}
                 <div className="cf2-prog" style={{ width: `${locked || prog.i !== i ? 0 : prog.k * 100}%` }} aria-hidden="true" />
               </div>
             </div>
-            <div className="cf2-tabs" role="tablist" aria-label="Screens">
+            <div className="cf2-tabs" role="tablist" aria-label={tx('Screens')}>
               {SCREENS.map((s, k) => (
                 <span key={s.title} className="cf2-tab-wrap">
                   {k > 0 && <span className="cf2-tab-sep" aria-hidden="true">//</span>}
                   <button role="tab" aria-selected={k === i} className={k === i ? 'on' : ''} onClick={() => { setI(k); setLocked(true) }}>
-                    {s.title}
+                    {tx(s.title)}
                   </button>
                 </span>
               ))}
@@ -261,47 +221,17 @@ function Product() {
 /* ── Feature index ──────────────────────────────────────── */
 
 function Features() {
+  useLang()
   return (
     <section id="features" data-sec className="cf2-light cf2-pad cf2-pad--feat">
       <GridBackdrop mask="ellipse 85% 75% at 50% 45%" bg="#f3f2f2" />
       <div className="cf2-wrap">
         <div className="cf2-head" data-rv>
-          <Label>Feature index</Label>
-          <h2 className="cf2-h2 cf2-h2--lg">Everything the <em>farm</em> runs on.</h2>
+          <Label>{tx('Feature index')}</Label>
+          <h2 className="cf2-h2 cf2-h2--lg">{tx('Everything the')} <em>{tx('farm', 'granja.')}</em>{tx(' runs on.')}</h2>
         </div>
-        <div className="cf2-bento">
-          <Card title="Herd & Lifecycle" span={4} cls="cf2-r">
-            <div className="cf2-media cf2-media--tall">
-              <img src={U('photo-1500595046743-cd271d694d30', 1400)} alt="Herd of cows on a green pasture" />
-            </div>
-          </Card>
-          <Card title="Production & Breeding" span={2}>
-            <div className="cf2-media cf2-media--tiles">
-              <div className="cf2-tiles cf2-tiles--a">
-                {PHOTOS_A.map((s, k) => (
-                  <div key={s} className="cf2-tile" style={{ ['--r' as string]: `${ROT_A[k]}deg` }}><img src={s} alt="" /></div>
-                ))}
-              </div>
-              <div className="cf2-tiles">
-                {PHOTOS_B.map((s, k) => (
-                  <div key={s} className="cf2-tile" style={{ ['--r' as string]: `${ROT_B[k]}deg` }}><img src={s} alt="" /></div>
-                ))}
-              </div>
-            </div>
-          </Card>
-          <Card title="Insight" span={3} cls="cf2-r">
-            <div className="cf2-media cf2-media--short">
-              <img src={U('photo-1558152761-aee570eb5cb0', 1200)} alt="Herd of cows in a green pasture" style={{ objectPosition: 'center top' }} />
-            </div>
-          </Card>
-          <Card title="Operations" span={3}>
-            <div className="cf2-media cf2-media--short">
-              <img src={U('photo-1705849441027-e366643921b3', 1200)} alt="Ranch hands rounding up cattle" />
-            </div>
-          </Card>
-          <Card title="Health" span={2} cls="cf2-r cf2-last-row" />
-          <Card title="Business" span={2} cls="cf2-r cf2-last-row" />
-          <Card title="Platform" span={2} cls="cf2-last-row cf2-last" />
+        <div className="cf2-fwrap">
+          <FeatureCard />
         </div>
       </div>
     </section>
@@ -311,18 +241,19 @@ function Features() {
 /* ── Testimonials ───────────────────────────────────────── */
 
 function Field() {
+  useLang()
   const [ref, vis] = useVisible<HTMLElement>()
   const [i, setI] = useState(0)
-  const [locked, setLocked] = useState(false)
-  const [hover, setHover] = useState(false)
+  const [hover, setHover] = useState(false) // true only while the cursor is on the testimonial itself
+  const [tick, setTick] = useState(0) // bumped by the arrows to restart the countdown
 
   useEffect(() => {
-    if (!vis || locked || hover) return
-    const t = window.setTimeout(() => setI(v => (v + 1) % TESTI.length), 8000)
+    if (!vis || hover) return
+    const t = window.setTimeout(() => setI(v => (v + 1) % TESTI.length), 6000)
     return () => clearTimeout(t)
-  }, [i, vis, locked, hover])
+  }, [i, vis, hover, tick])
 
-  const go = (n: number) => { setI((n + TESTI.length) % TESTI.length); setLocked(true) }
+  const go = (n: number) => { setI((n + TESTI.length) % TESTI.length); setTick(t => t + 1) }
 
   // phones: the testimonials are a row of cards you swipe through (native scroll-snap); keep the dots in sync
   const rail = useRef<HTMLDivElement>(null)
@@ -363,12 +294,12 @@ function Field() {
   }
 
   return (
-    <section id="field" data-sec ref={ref} className="cf2-dark cf2-pad" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+    <section id="field" data-sec ref={ref} className="cf2-dark cf2-pad">
       <div className="cf2-wrap cf2-stack cf2-stack--tight">
         <div className="cf2-head cf2-head--left" data-rv>
-          <Label dark>Testimonials</Label>
-          <h2 className="cf2-h2 cf2-h2--field">Built for serious <em>cattle operations.</em></h2>
-          <p className="cf2-field-sub">Used by ranchers managing hundreds to thousands of animals, every day.</p>
+          <Label dark>{tx('Testimonials')}</Label>
+          <h2 className="cf2-h2 cf2-h2--field">{tx('Built for serious')} <em>{tx('cattle operations.')}</em></h2>
+          <p className="cf2-field-sub">{tx('Used by ranchers managing hundreds to thousands of animals, every day.')}</p>
         </div>
         <div className="cf2-tcards" ref={rail} onScroll={onRail} onTouchStart={() => { touching.current = true }} onTouchEnd={() => { touching.current = false; setBump(b => b + 1) }} onTouchCancel={() => { touching.current = false; setBump(b => b + 1) }}>
           {TESTI.map(t => (
@@ -376,19 +307,19 @@ function Field() {
               <img src={t.src} alt={t.name} draggable={false} />
               <div className="cf2-tcard-body">
                 <strong>{t.name}</strong>
-                <span>{t.role}, {t.farm}</span>
-                <span className="cf2-place">{t.place}, {t.country}</span>
-                <p>{t.quote}</p>
+                <span>{tx(t.role)}, {t.farm}</span>
+                <span className="cf2-place">{tx(t.place)}, {tx(t.country)}</span>
+                <p>{tx(t.quote)}</p>
               </div>
             </article>
           ))}
         </div>
-        <div className="cf2-tdots" role="tablist" aria-label="Testimonials">
+        <div className="cf2-tdots" role="tablist" aria-label={tx('Testimonials')}>
           {TESTI.map((t, n) => (
-            <button key={t.name} role="tab" aria-selected={n === ci} aria-label={`Show ${t.name}`} className={n === ci ? 'on' : ''} onClick={() => toCard(n)} />
+            <button key={t.name} role="tab" aria-selected={n === ci} aria-label={tx('Show ') + t.name} className={n === ci ? 'on' : ''} onClick={() => toCard(n)} />
           ))}
         </div>
-        <div className="cf2-field-grid" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+        <div className="cf2-field-grid" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
           <div className="cf2-stackimgs">
             {TESTI.map((t, k) => {
               const on = k === i
@@ -415,11 +346,11 @@ function Field() {
                   <figure key={t.name} className={`cf2-quote${on ? ' on' : ''}`}>
                     <figcaption>
                       <strong>{t.name}</strong>
-                      <span>{t.role}, {t.farm}</span>
-                      <span className="cf2-place">{t.place}, {t.country}</span>
+                      <span>{tx(t.role)}, {t.farm}</span>
+                      <span className="cf2-place">{tx(t.place)}, {tx(t.country)}</span>
                     </figcaption>
                     <blockquote>
-                      {t.quote.split(' ').map((w, j) => (
+                      {tx(t.quote).split(' ').map((w, j) => (
                         <span key={j} style={{ transitionDelay: on ? `${(0.15 + j * 0.02).toFixed(2)}s` : '0s' }}>{w}</span>
                       ))}
                     </blockquote>
@@ -428,10 +359,10 @@ function Field() {
               })}
             </div>
             <div className="cf2-field-nav">
-              <button aria-label="Previous testimonial" onClick={() => go(i - 1)}>
+              <button aria-label={tx('Previous testimonial')} onClick={() => go(i - 1)}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="square"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
               </button>
-              <button aria-label="Next testimonial" onClick={() => go(i + 1)}>
+              <button aria-label={tx('Next testimonial')} onClick={() => go(i + 1)}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="square"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </button>
               <span>0{i + 1} / 0{TESTI.length}</span>
@@ -446,14 +377,15 @@ function Field() {
 /* ── FAQ ────────────────────────────────────────────────── */
 
 function Faq() {
+  useLang()
   const [open, setOpen] = useState(0)
   return (
     <section id="faq" data-sec className="cf2-light cf2-pad">
       <GridBackdrop mask="ellipse 85% 75% at 50% 45%" bg="#f3f2f2" />
       <div className="cf2-wrap cf2-faq-grid">
         <div className="cf2-head cf2-head--left" data-rv>
-          <Label>Questions</Label>
-          <h2 className="cf2-h2 cf2-h2--field">Asked and <em>answered.</em></h2>
+          <Label>{tx('Questions')}</Label>
+          <h2 className="cf2-h2 cf2-h2--field">{tx('Asked and')} <em>{tx('answered.')}</em></h2>
         </div>
         <div className="cf2-faq-list">
           {FAQS.map((f, k) => {
@@ -462,13 +394,13 @@ function Faq() {
               <div key={f.q} className="cf2-faq-item">
                 <button aria-expanded={on} onClick={() => setOpen(on ? -1 : k)}>
                   <span className="cf2-faq-n">0{k + 1}</span>
-                  <span className="cf2-faq-q">{f.q}</span>
+                  <span className="cf2-faq-q">{tx(f.q)}</span>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" aria-hidden="true" style={{ transform: on ? 'rotate(45deg)' : 'none' }}>
                     <path d="M12 4v16M4 12h16" />
                   </svg>
                 </button>
                 <div className="cf2-faq-a" style={{ gridTemplateRows: on ? '1fr' : '0fr' }}>
-                  <div><p>{f.a}</p></div>
+                  <div><p>{tx(f.a)}</p></div>
                 </div>
               </div>
             )
@@ -482,6 +414,7 @@ function Faq() {
 /* ── Demo / contact ─────────────────────────────────────── */
 
 function WordRoll() {
+  useLang()
   const [idx, setIdx] = useState(0)
   const [anim, setAnim] = useState(true)
 
@@ -502,7 +435,7 @@ function WordRoll() {
     <span className="cf2-roll">
       <span className="cf2-roll-col" style={{ transform: `translateY(-${(idx * 1.12).toFixed(2)}em)`, transition: anim ? 'transform .7s cubic-bezier(.7,0,.2,1)' : 'none' }}>
         {list.map((w, k) => (
-          <span key={k} aria-hidden={k === list.length - 1 || undefined}>{w}<b>.</b></span>
+          <span key={k} aria-hidden={k === list.length - 1 || undefined}>{tx(w, w === 'farm' ? 'la granja' : undefined)}<b>.</b></span>
         ))}
       </span>
     </span>
@@ -512,6 +445,7 @@ function WordRoll() {
 type Status = 'idle' | 'loading' | 'success' | 'error' | 'activate'
 
 function Demo() {
+  useLang()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -525,7 +459,7 @@ function Demo() {
     const b = { name: !name.trim(), email: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) }
     setBad(b)
     if (b.name || b.email) {
-      setErr(b.name && b.email ? 'Add your name and a valid email.' : b.name ? 'Add your name.' : 'Add a valid email.')
+      setErr(b.name && b.email ? 'Add your name and a valid email.' : b.name ? 'Add your name.' : 'Add a valid email.') // kept in English; translated when rendered
       return
     }
     setErr('')
@@ -563,43 +497,50 @@ function Demo() {
       <div data-bg="1" aria-hidden="true" className="cf2-demo-bg"><RippleLayer rgb="159,230,204" maxA={0.1} /></div>
       <div className="cf2-wrap cf2-demo-grid">
         <div className="cf2-demo-l" data-rv>
-          <h2 className="cf2-demo-h" aria-label="Run the whole farm.">
-            <span>Run the whole</span>
+          <h2 className="cf2-demo-h" aria-label={tx('Run the whole farm.')}>
+            <span>{tx('Run the whole')}</span>
             <WordRoll />
           </h2>
-          <p>See your own herd in Cattle Force. A 30-minute walkthrough, mapped to how your farm already works.</p>
+          <p>{tx('See your own herd in Cattle Force. A 30-minute walkthrough, mapped to how your farm already works.')}</p>
         </div>
         <div className="cf2-demo-card" data-rv>
-          <strong className="cf2-demo-title">Talk to us about <em>your herd.</em></strong>
+          <div aria-hidden="true" className="cf2-dc-glow" />
+          <div className="cf2-dc-in">
+          <div className="cf2-dc-head">
+            <strong className="cf2-demo-title">{tx('Talk to us about')} <em>{tx('your herd.')}</em></strong>
+          </div>
+          <div className="cf2-dc-body">
           {status === 'success' ? (
             <div role="status" className="cf2-thanks">
-              <strong>Thanks, {sentTo.first}. We’ll be in touch within a working day.</strong>
-              <span>We’ll send a few times for a 30-minute walkthrough to {sentTo.email}.</span>
+              <strong>{tx('Thanks, ')}{sentTo.first}{tx('. We’ll be in touch within a working day.')}</strong>
+              <span>{tx('We’ll send a few times for a 30-minute walkthrough to ')}{sentTo.email}.</span>
             </div>
           ) : (
             <form onSubmit={submit} noValidate>
-              <label>Name
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" autoComplete="name" style={{ borderColor: bad.name ? '#ff7a5c' : undefined }} />
+              <label>{tx('Name')}
+                <input value={name} onChange={e => setName(e.target.value)} placeholder={tx('Your name')} autoComplete="name" style={{ borderColor: bad.name ? '#ff7a5c' : undefined }} />
               </label>
-              <label>Email
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@farm.com" autoComplete="email" style={{ borderColor: bad.email ? '#ff7a5c' : undefined }} />
+              <label>{tx('Email')}
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={tx('you@farm.com')} autoComplete="email" style={{ borderColor: bad.email ? '#ff7a5c' : undefined }} />
               </label>
-              <label>Message
-                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Tell us about your herd and what you need" rows={4} />
+              <label>{tx('Message')}
+                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={tx('Tell us about your herd and what you need')} rows={4} />
               </label>
               <button type="submit" className="cf2-submit" disabled={status === 'loading'}>
-                <span>{status === 'loading' ? 'Sending…' : status === 'activate' ? 'Try again' : 'Book a demo'}</span>
+                <span>{tx(status === 'loading' ? 'Sending…' : status === 'activate' ? 'Try again' : 'Book a demo')}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
               </button>
-              {err && <p role="alert" className="cf2-err">{err}</p>}
+              {err && <p role="alert" className="cf2-err">{tx(err)}</p>}
               {status === 'activate' && (
-                <p role="alert" className="cf2-err">One more step: we just sent an activation email to our inbox. Please click the confirmation link in it, then submit again.</p>
+                <p role="alert" className="cf2-err">{tx('One more step: we just sent an activation email to our inbox. Please click the confirmation link in it, then submit again.')}</p>
               )}
               {status === 'error' && (
-                <p role="alert" className="cf2-err">Something went wrong. Please try again or email <a href="mailto:cattleeforcee@gmail.com">cattleeforcee@gmail.com</a>.</p>
+                <p role="alert" className="cf2-err">{tx('Something went wrong. Please try again or email ')}<a href="mailto:cattleeforcee@gmail.com">cattleeforcee@gmail.com</a>.</p>
               )}
             </form>
           )}
+          </div>
+          </div>
         </div>
       </div>
     </section>
@@ -609,15 +550,16 @@ function Demo() {
 /* ── Footer ─────────────────────────────────────────────── */
 
 function Footer() {
+  useLang()
   return (
     <footer className="cf2-footer">
       <div className="cf2-wrap">
         <div className="cf2-footer-row">
           <img src={logoWhite} alt="Cattle Force" />
-          <span className="cf2-footer-contact">Contact Us: <a href="mailto:cattleeforcee@gmail.com">cattleeforcee@gmail.com</a></span>
+          <span className="cf2-footer-contact">{tx('Contact Us: ')}<a href="mailto:cattleeforcee@gmail.com">cattleeforcee@gmail.com</a></span>
           <div className="cf2-footer-end">
-            <Link to="/privacy-policy">Privacy Policy</Link>
-            <Link to="/terms">Terms &amp; Conditions</Link>
+            <Link to="/privacy-policy">{tx('Privacy Policy')}</Link>
+            <Link to="/terms">{tx('Terms & Conditions')}</Link>
             <span>© {new Date().getFullYear()} Cattle Force</span>
           </div>
         </div>
