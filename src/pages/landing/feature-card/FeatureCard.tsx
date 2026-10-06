@@ -37,6 +37,8 @@ export function FeatureCard({ className }: { className?: string }) {
   const [tab, setTab] = React.useState(0);
   const [tabStart, setTabStart] = React.useState(() => performance.now());
   const [now, setNow] = React.useState(() => performance.now());
+  const tabStartRef = React.useRef(tabStart);
+  React.useEffect(() => { tabStartRef.current = tabStart; }, [tabStart]);
   const ref = React.useRef<HTMLDivElement>(null);
   const hover = React.useRef(false);
   const visible = React.useRef(true);
@@ -54,7 +56,9 @@ export function FeatureCard({ className }: { className?: string }) {
         setTab(i => (i + 1) % FEATURES.length);
         setTabStart(t);
       }
-      setNow(t);
+      // re-render per frame only while the title / row entrance animations are running and the card is on screen
+      // (re-rendering the whole card at 60fps all the time made scrolling past it stutter on phones)
+      if (visible.current && t - tabStartRef.current < 1400) setNow(t);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -96,11 +100,11 @@ export function FeatureCard({ className }: { className?: string }) {
       style={{ position: "relative", isolation: "isolate", fontFamily: "var(--font-body, 'Geist', system-ui, sans-serif)", color: INK }}
     >
       {/* Outer soft glow */}
-      <div aria-hidden style={{ position: "absolute", inset: -6, zIndex: -2, borderRadius: 16,
+      <div aria-hidden className="cf-outerglow" style={{ position: "absolute", inset: -6, zIndex: -2, borderRadius: 16,
         background: "#0b0a09",
         filter: "blur(26px)", opacity: 0.35 }} />
       {/* Card */}
-      <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "#fff",
+      <div className="cf-shell" style={{ position: "relative", borderRadius: 10, overflow: "hidden", background: "#fff",
         boxShadow: "0 1px 2px rgba(11,10,9,0.05), 0 8px 20px -6px rgba(11,10,9,0.10), 0 32px 80px -16px rgba(11,10,9,0.28), 0 64px 140px -40px rgba(11,10,9,0.22)" }}>
 
         {/* Aurora header — separated from body by shadow only */}

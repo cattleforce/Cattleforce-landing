@@ -26,6 +26,8 @@ export default function Story() {
   const railRef = useRef<HTMLElement>(null)
   const [ui, setUi] = useState<UI>({ ready: false, narrow: false, p: 0, now: 0, sel: 0, hov: false, stg: 0, selT: 0 })
   const selT = useRef(0)
+  // phones: the story is a row of slides you swipe through (no tall scroll section); this is the slide controller, set up by the effect below
+  const slideApi = useRef<{ goto: (c: number) => void; cur: () => number } | null>(null)
   useEffect(() => {
     const cv = cvRef.current!
     const ctx = cv.getContext('2d')!
@@ -87,10 +89,41 @@ export default function Story() {
     const onScroll = () => {
       const el = secRef.current
       if (!el) return
-      p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)))
+      if (innerWidth >= 820) p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)))
       goMaybe()
       push({ p })
     }
+
+    // slide mode (phones): swipe left / right to change chapter; the page itself scrolls normally past the story
+    let slideC = 0, slideRaf = 0
+    const gotoSlide = (c: number) => {
+      c = Math.max(0, Math.min(4, Math.round(c)))
+      slideC = c
+      cancelAnimationFrame(slideRaf)
+      const from = p, to = c / 4, t0 = performance.now(), dur = 520
+      const tick = (now: number) => {
+        const k = Math.min(1, (now - t0) / dur)
+        p = from + (to - from) * (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2)
+        push({ p })
+        if (k < 1) slideRaf = requestAnimationFrame(tick)
+      }
+      slideRaf = requestAnimationFrame(tick)
+    }
+    slideApi.current = { goto: gotoSlide, cur: () => slideC }
+    let sx = 0, sy = 0
+    const onSwipeStart = (e: TouchEvent) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY }
+    const onSwipeEnd = (e: TouchEvent) => {
+      if (innerWidth >= 820) return
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        // swiping on past the last chapter carries on to the next section
+        if (dx < 0 && slideC === 4) { document.getElementById('manifesto')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
+        gotoSlide(slideC + (dx < 0 ? 1 : -1))
+      }
+    }
+    const stickEl = stickRef.current
+    stickEl?.addEventListener('touchstart', onSwipeStart, { passive: true })
+    stickEl?.addEventListener('touchend', onSwipeEnd, { passive: true })
     ;(document.fonts?.ready ?? Promise.resolve()).then(() => {
       fontsOK = true; goMaybe()
       // tell the page loader the story animation is prepared (fonts in, canvas laid out)
@@ -303,6 +336,8 @@ export default function Story() {
       window.removeEventListener('mousemove', onMove); document.removeEventListener('mouseleave', onOut)
       window.removeEventListener('touchstart', onTapStart); window.removeEventListener('touchend', onTapEnd)
       window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(slideRaf); slideApi.current = null
+      stickEl?.removeEventListener('touchstart', onSwipeStart); stickEl?.removeEventListener('touchend', onSwipeEnd)
     }
   }, [])
 
@@ -343,6 +378,7 @@ export default function Story() {
 
   const goCh = useCallback((c: number, soft = false, fast = false) => {
     if (!secRef.current) return
+    if (innerWidth < 820) { slideApi.current?.goto(c); return } // phones: slide, don't scroll
     goY(chapterY(c), soft, fast)
   }, [goY])
 
@@ -350,7 +386,7 @@ export default function Story() {
     const stepState = step.current
     const pinned = () => {
       const el = secRef.current
-      if (!el) return false
+      if (!el || innerWidth < 820) return false // stepped scrolling is for the tall desktop story only
       const r = el.getBoundingClientRect()
       return r.top <= 1 && r.bottom >= (stickRef.current?.offsetHeight ?? innerHeight) - 1
     }
@@ -376,9 +412,12 @@ export default function Story() {
     }
 
     // desktop / trackpad: scroll normally. When scrolling stops, ease into the chapter you were heading to and hold there.
-    let rest = 0, idle = 0
+    let rest = 0, idle = 0, lastIn = 0, touching = false
+    const markIn = () => { lastIn = performance.now() }
     const settle = () => {
       if (navigating() || !pinned() || step.current.busy || locked()) return
+      // still scrolling (wheel notches / momentum arrive in bursts) or a finger is down: this is one gesture, wait until it is over
+      if (touching || performance.now() - lastIn < 150) { clearTimeout(idle); idle = window.setTimeout(settle, 80); return }
       const el = secRef.current!
       const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight))) * 4
       const delta = sPos - rest
@@ -394,12 +433,12 @@ export default function Story() {
       if (!wasPinned) { wasPinned = true; rest = current() }
       if (step.current.busy) return
       clearTimeout(idle)
-      idle = window.setTimeout(settle, 90)
+      idle = window.setTimeout(settle, 120)
     }
 
     // touch: one swipe = one chapter
-    let y0 = 0, stepped = false, claim = false, tStart = 0, lastDy = 0
-    const onTouchStart = (e: TouchEvent) => { y0 = e.touches[0].clientY; stepped = false; claim = false; tStart = performance.now(); lastDy = 0 }
+    let x0 = 0, y0 = 0, stepped = false, claim = false, tStart = 0, lastDy = 0
+    const onTouchStart = (e: TouchEvent) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; stepped = false; claim = false; tStart = performance.now(); lastDy = 0 }
     // true while the last chapter (or the story's tail) is on screen and the typed text has not been reached yet
     const beforeManifesto = () => {
       const st = secRef.current?.getBoundingClientRect(), man = document.getElementById('manifesto')?.getBoundingClientRect()
@@ -412,6 +451,8 @@ export default function Story() {
       return !!man && !!prod && man.top <= 24 && man.bottom > 0 && prod.top > 24
     }
     const onTouchMove = (e: TouchEvent) => {
+      // a sideways swipe (changing story slide on phones) must never be mistaken for a downward scroll
+      if (Math.abs(e.touches[0].clientX - x0) > Math.abs(e.touches[0].clientY - y0)) return
       if (inManifesto() && y0 - e.touches[0].clientY > 0) {
         // swiping down past the typed text: land exactly on the product section, then scrolling is normal again
         e.preventDefault()
@@ -469,7 +510,7 @@ export default function Story() {
     let holdY: number | null = null, holdTimer = 0, prevY = scrollY
     const coarse = matchMedia('(pointer: coarse)').matches
     const armHold = () => { clearTimeout(holdTimer); holdTimer = window.setTimeout(() => { holdY = null }, coarse ? 380 : 170) }
-    step.current.setHold = (y: number) => { holdY = y; armHold() }
+    step.current.setHold = (y: number) => { holdY = y; rest = current(); armHold() }
     const onEntry = () => {
       const y = scrollY, c0 = chapterY(0)
       if (navigating()) { holdY = null; prevY = y; return }
@@ -479,8 +520,14 @@ export default function Story() {
       if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) window.scrollTo({ top: holdY, behavior: 'instant' as ScrollBehavior })
     }
     const onInput = () => { if (holdY !== null) armHold() }
+    const onTouchDown = () => { touching = true; markIn() }
+    const onTouchUp = () => { touching = false; markIn() }
     window.addEventListener('scroll', onEntry, { passive: true })
     window.addEventListener('wheel', onInput, { passive: true })
+    window.addEventListener('wheel', markIn, { passive: true })
+    window.addEventListener('touchstart', onTouchDown, { passive: true })
+    window.addEventListener('touchend', onTouchUp, { passive: true })
+    window.addEventListener('touchcancel', onTouchUp, { passive: true })
     window.addEventListener('touchmove', onInput, { passive: true })
 
     // the user is never held: a fresh wheel gesture or a new touch during a step takes over straight away
@@ -498,7 +545,7 @@ export default function Story() {
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
       window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt); window.removeEventListener('cf:nav', interrupt)
-      window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
+      window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('wheel', markIn); window.removeEventListener('touchstart', onTouchDown); window.removeEventListener('touchend', onTouchUp); window.removeEventListener('touchcancel', onTouchUp); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
@@ -512,7 +559,10 @@ export default function Story() {
 
   // expose "go to story" for the intro button
   useEffect(() => {
-    const h = () => goCh(0)
+    const h = () => {
+      if (innerWidth < 820) { const el = secRef.current; if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY, behavior: 'smooth' }) }
+      goCh(0)
+    }
     window.addEventListener('cf:story', h)
     return () => window.removeEventListener('cf:story', h)
   }, [goCh])
@@ -522,7 +572,7 @@ export default function Story() {
   const ch = (c: number) => {
     const o = clamp(1 - Math.abs(s - c) * 2.6 + 0.3)
     // phones: text is anchored near the top (no vertical centring) so the animation can sit higher and fully on screen
-    return { opacity: o.toFixed(3), transform: narrow ? `translate3d(0, ${((c - s) * 60).toFixed(1)}px, 0)` : `translate3d(0, calc(-50% + ${((c - s) * 90).toFixed(1)}px), 0)`, pointerEvents: (o > 0.5 ? 'auto' : 'none') as 'auto' | 'none' }
+    return { opacity: o.toFixed(3), transform: narrow ? `translate3d(${((c - s) * 70).toFixed(1)}px, 0, 0)` : `translate3d(0, calc(-50% + ${((c - s) * 90).toFixed(1)}px), 0)`, pointerEvents: (o > 0.5 ? 'auto' : 'none') as 'auto' | 'none' }
   }
   const act = Math.round(s)
   const inO = ready ? 1 : 0
@@ -566,7 +616,7 @@ export default function Story() {
   })
 
   return (
-    <section id="top" ref={secRef} className="cf2s" style={{ height: '600vh' }}>
+    <section id="top" ref={secRef} className="cf2s" style={{ height: narrow ? undefined : '600vh' }}>
       <div ref={stickRef} className="cf2s-stick">
         <canvas ref={cvRef} className="cf2s-canvas" aria-hidden="true" />
         <div className="cf2s-vignette" aria-hidden="true" />
@@ -634,6 +684,13 @@ export default function Story() {
                 : rec.f.slice(1).map(x => x.v).join(' · ')}
           </p>
         </div>
+
+        {narrow && (
+          <div className="cf2s-swipe" aria-hidden="true" style={{ opacity: (clamp(1 - s * 3) * inO).toFixed(3) }}>
+            <span>{tx('Swipe')}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+          </div>
+        )}
 
         <nav ref={railRef} aria-label={tx('Chapters')} className="cf2s-rail" style={{ opacity: inO }}>
           <span data-rail-ind="1" aria-hidden="true" />

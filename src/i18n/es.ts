@@ -21,7 +21,7 @@ export const ES: Record<string, string> = {
   'Dam, sire and every generation behind them, one tap from any animal. Breed with the whole family tree in view.': 'La madre, el padre y cada generación que los precede, a un toque de cualquier animal. Cría con todo el árbol genealógico a la vista.',
   '04 — Today': '04 — Hoy', 'One of them': 'Uno de ellos', 'needs you.': 'te necesita.',
   'Cattle Force reads every record and flags alerts that need to be addressed on priority.': 'Cattle Force lee cada registro y señala las alertas que deben atenderse con prioridad.',
-  'Chapters': 'Capítulos', 'Home': 'Inicio', 'Lifecycle': 'Ciclo de vida', 'Growth': 'Crecimiento', 'Lineage': 'Linaje', 'Today': 'Hoy',
+  'Chapters': 'Capítulos', 'Swipe': 'Desliza', 'Home': 'Inicio', 'Lifecycle': 'Ciclo de vida', 'Growth': 'Crecimiento', 'Lineage': 'Linaje', 'Today': 'Hoy',
   // record card
   'Live': 'En vivo', 'Watch': 'Vigilar', 'Alert · 06:10': 'Alerta · 06:10', 'Yield today': 'Producción hoy', '7-day average': 'Promedio de 7 días', 'Lactation': 'Lactancia', '3rd': '3.ª', 'Group': 'Grupo', '3 · Paddock B': '3 · Potrero B',
   'Milk yield down 12%. Check before evening milking.': 'La producción de leche bajó un 12 %. Revísalo antes del ordeño de la tarde.',
@@ -78,7 +78,7 @@ export const ES: Record<string, string> = {
   'Contact Us: ': 'Contáctanos: ', 'Privacy Policy': 'Política de privacidad', 'Terms & Conditions': 'Términos y condiciones',
   // page meta
   'Cattle Force — The Operating System for Modern Cattle Farms': 'Cattle Force — El sistema operativo para granjas ganaderas modernas',
-  'Capability': 'Capacidad', 'Cattle Force includes all': 'Cattle Force incluye todo', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
+  'Capability': 'Capacidad', 'Scroll to the next section': 'Ir a la siguiente sección', 'Cattle Force includes all': 'Cattle Force incluye todo', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
   'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para granjas ganaderas modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
 }
 

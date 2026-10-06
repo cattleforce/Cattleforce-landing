@@ -29,3 +29,9 @@
 .cf-aurora::before { top: -90%; left: -8%; width: 52%; height: 280%; background: radial-gradient(ellipse at center, rgba(120,126,124,.42), rgba(120,126,124,0) 68%); animation: cf2nAuroraA 9s ease-in-out infinite alternate; }
 .cf-aurora::after { top: -110%; right: -10%; width: 58%; height: 300%; background: radial-gradient(ellipse at center, rgba(150,155,153,.38), rgba(150,155,153,0) 68%); animation: cf2nAuroraB 12s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .cf-aurora::before, .cf-aurora::after { animation: none; } }
+
+/* phones: big blurred glows / shadows are repainted on every scroll frame and make scrolling stutter, so use light ones */
+@media (max-width: 760px) {
+  .cf-outerglow { display: none; }
+  .cf-shell { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.28) !important; }
+}

@@ -432,3 +432,18 @@
   html[lang="es"] #demo .cf2-demo-title { font-size: clamp(20px, 5.6vw, 24px); }
   html[lang="es"] .cf-ftitle { font-size: 24px !important; }
 }
+
+/* bobbing arrow right after the manifesto text: appears once it has finished typing, nudges people on and takes them to the product section */
+.cf2-mdown { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: clamp(20px, 4vh, 36px) auto 0; border-radius: 9999px; border: 1px solid rgba(243,242,242,.4); color: #f3f2f2; opacity: 0; pointer-events: none; transform: translateY(8px); -webkit-tap-highlight-color: transparent; transition: opacity .5s ease, transform .5s ease, border-color .25s ease, background .25s ease; }
+.cf2-mdown.on { opacity: 1; pointer-events: auto; transform: none; }
+.cf2-mdown svg { animation: cf2Bob 1.6s ease-in-out infinite; }
+.cf2-mdown:hover { border-color: #f3f2f2; background: rgba(243,242,242,.1); }
+.cf2-mdown:focus-visible { outline: 2px solid #68c6a4; outline-offset: 3px; }
+@keyframes cf2Bob { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .cf2-mdown svg { animation: none; } }
+
+@media (max-width: 760px) {
+  .cf2-fglow, .cf2-dc-glow { display: none; }
+  #product .cf2-frame { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.28); }
+  .cf2-dc-in { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.35); }
+}

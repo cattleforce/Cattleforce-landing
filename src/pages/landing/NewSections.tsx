@@ -149,6 +149,9 @@ function Manifesto() {
             )
           })}
         </p>
+        <a href="#product" className={`cf2-mdown${done ? ' on' : ''}`} aria-label={tx('Scroll to the next section')} tabIndex={done ? 0 : -1}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14" /><path d="m19 12-7 7-7-7" /></svg>
+        </a>
       </div>
     </section>
   )
