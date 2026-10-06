@@ -291,6 +291,7 @@ export function Effects() {
   const dgRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    let navRaf = 0
     const onClick = (e: MouseEvent) => {
       const a = (e.target as Element).closest?.('a[href^="#"]')
       if (!a || e.metaKey || e.ctrlKey) return
@@ -298,17 +299,28 @@ export function Effects() {
       const t = id && document.getElementById(id)
       if (!t) return
       e.preventDefault()
-      // plain smooth scroll, landing exactly on the section's top edge (so its full background is in view)
-      // tell the story's stepped scrolling to stand aside while this jump is in flight, so it can't stop us on a chapter on the way
+      // our own eased scroll, landing exactly on the section's top edge (so its full background is in view).
+      // The browser's native smooth scroll gives up part-way on long jumps on phones, which is why menu links stopped short of their section.
       const w = window as unknown as { __cfNav?: boolean }
-      w.__cfNav = true
+      w.__cfNav = true // the story's stepped scrolling / snapping stands aside while the jump is in flight
       window.dispatchEvent(new Event('cf:nav'))
-      let t0 = 0
-      const end = () => { w.__cfNav = false; removeEventListener('scroll', bump) }
-      const bump = () => { clearTimeout(t0); t0 = window.setTimeout(end, 180) }
-      addEventListener('scroll', bump, { passive: true })
-      t0 = window.setTimeout(end, 500)
-      window.scrollTo({ top: Math.max(0, t.getBoundingClientRect().top + scrollY), behavior: 'smooth' })
+      cancelAnimationFrame(navRaf)
+      const from = scrollY
+      const max = document.documentElement.scrollHeight - innerHeight
+      const to = Math.max(0, Math.min(max, t.getBoundingClientRect().top + from))
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+      const dur = reduce ? 1 : Math.max(450, Math.min(1500, 450 + (Math.abs(to - from) / innerHeight) * 90))
+      const t0 = performance.now()
+      const stop = () => { cancelAnimationFrame(navRaf); w.__cfNav = false; removeEventListener('wheel', stop); removeEventListener('touchstart', stop); removeEventListener('keydown', stop) }
+      addEventListener('wheel', stop, { passive: true }); addEventListener('touchstart', stop, { passive: true }); addEventListener('keydown', stop)
+      const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2)
+      const tick = (now: number) => {
+        const k = Math.min(1, (now - t0) / dur)
+        window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior })
+        if (k < 1) navRaf = requestAnimationFrame(tick)
+        else { window.scrollTo({ top: to, behavior: 'instant' as ScrollBehavior }); window.setTimeout(stop, 200) }
+      }
+      navRaf = requestAnimationFrame(tick)
     }
     document.addEventListener('click', onClick)
     return () => document.removeEventListener('click', onClick)

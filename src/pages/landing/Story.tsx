@@ -518,7 +518,8 @@ export default function Story() {
       const y = scrollY, c0 = chapterY(0)
       if (navigating() || innerWidth < 820) { holdY = null; prevY = y; return } // phones use native scroll-snap below instead (clamping against momentum made it judder)
       // arriving from the hero: land on the first chapter, never beyond it
-      if (holdY === null && !step.current.busy && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
+      // only a real wheel / touch gesture earns the arrival stop; programmatic jumps (menu links, keyboard) must never be caught on the way
+      if (holdY === null && !step.current.busy && performance.now() - lastIn < 600 && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
       prevY = y
       if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) {
         // momentum is still trying to carry on: keep holding (and keep the hold alive) until it has died out
@@ -717,7 +718,7 @@ export default function Story() {
         {narrow && (
           <div className="cf2s-swipe" aria-hidden="true" style={{ opacity: inO }}>
             <span>{tx('Swipe')}</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            <span className="cf2s-swipe-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg></span>
           </div>
         )}
 

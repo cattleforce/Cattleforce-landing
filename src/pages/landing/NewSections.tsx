@@ -7,7 +7,7 @@ import logoWhite from '../../assets/new/logo-lockup-white.png'
 import FeatureCard from './feature-card/FeatureCard'
 import { GridBackdrop, LangToggle, RippleLayer } from './Chrome'
 import AboutUs from './AboutUs'
-import { MAN_ES, MAN_ITAL_ES } from '../../i18n/es'
+import { MAN_ES, MAN_HL_ES } from '../../i18n/es'
 import { tx, useLang } from '../../i18n'
 import './newsections.css'
 
@@ -15,11 +15,11 @@ import './newsections.css'
 /* ── Data (from the design's constants) ─────────────────── */
 
 const MAN =
-  'Cattle Force replaces notebooks and spreadsheets with a smart platform that manages your herd, team and finances, so your whole farm runs as one.'
+  'Cattle Force replaces notebooks and spreadsheets with a smart platform that manages your herd, team and finances, all in one place.'
 const manWords = (s: string) => s.split(' ').map((w, i, arr) => ({ w, pos: arr.slice(0, i).reduce((n, x) => n + x.length + 1, 0) }))
 const MAN_WORDS = manWords(MAN)
 const MAN_WORDS_ES = manWords(MAN_ES)
-const MAN_ITAL = new Set(['runs', 'as', 'one.'])
+const MAN_HL = new Set(['smart', 'platform'])
 
 const SCREENS = [
   { src: appDashboard, title: 'Dashboard' },
@@ -93,7 +93,7 @@ function Manifesto() {
   const completed = useRef(false)
   const text = es ? MAN_ES : MAN
   const words = es ? MAN_WORDS_ES : MAN_WORDS
-  const ital = es ? MAN_ITAL_ES : MAN_ITAL
+  const hl = es ? MAN_HL_ES : MAN_HL
   const total = text.length
 
   useEffect(() => {
@@ -142,7 +142,7 @@ function Manifesto() {
             const a = Math.max(0, Math.min(w.length, typed - pos))
             const hasCursor = !done && typed >= pos && typed <= pos + w.length
             return (
-              <span key={i} className={`cf2-mw${ital.has(w) ? ' cf2-mw--em' : ''}`} aria-hidden="true">
+              <span key={i} className={`cf2-mw${hl.has(w) ? ' cf2-mw--hl' : ''}`} aria-hidden="true">
                 <span>{w.slice(0, a)}</span>
                 {hasCursor && <span className="cf2-cursor" />}
                 <span style={{ opacity: 0 }}>{w.slice(a)}</span>
@@ -181,6 +181,16 @@ function Product() {
     return () => cancelAnimationFrame(raf)
   }, [i, vis, locked])
 
+  // phones: swipe the screenshot left for the next screen, right for the previous one (vertical swipes still scroll the page)
+  const touch = useRef({ x: 0, y: 0 })
+  const onTouchStart = (e: React.TouchEvent) => { touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touch.current.x, dy = e.changedTouches[0].clientY - touch.current.y
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.4) return
+    setI(v => (v + (dx < 0 ? 1 : SCREENS.length - 1)) % SCREENS.length)
+    setLocked(true)
+  }
+
   return (
     <section id="product" data-sec className="cf2-light cf2-pad">
       <GridBackdrop mask="ellipse 85% 75% at 50% 45%" bg="#f3f2f2" />
@@ -198,7 +208,7 @@ function Product() {
               <div className="cf2-frame-url">{tx('Real screens from the Cattle Force app.')}</div>
             </div>
             <div className="cf2-frame-pad">
-              <div className="cf2-screens">
+              <div className="cf2-screens" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
                 {SCREENS.map((s, k) => (
                   <img key={s.title} src={s.src} alt={tx(`Cattle Force ${s.title} screen`)} className={k === i ? 'on' : ''} />
                 ))}

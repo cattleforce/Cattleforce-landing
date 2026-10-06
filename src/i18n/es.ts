@@ -90,5 +90,5 @@ export const ES: Record<string, string> = {
   'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para granjas ganaderas modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
 }
 
-export const MAN_ES = 'Cattle Force reemplaza los cuadernos y las hojas de cálculo con una plataforma inteligente que gestiona tu hato, equipo y finanzas, para que toda tu granja funcione como una sola.'
-export const MAN_ITAL_ES = new Set(['funcione', 'como', 'una', 'sola.'])
+export const MAN_ES = 'Cattle Force reemplaza los cuadernos y las hojas de cálculo con una plataforma inteligente que gestiona tu hato, equipo y finanzas, todo en un solo lugar.'
+export const MAN_HL_ES = new Set(['plataforma', 'inteligente'])
