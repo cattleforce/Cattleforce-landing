@@ -178,7 +178,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid #68c6a4; outline-offs
 .cf2n-scrim.on { opacity: 1; pointer-events: auto; }
 
 @media (max-width: 760px) {
-  .cf2s-mini { display: block; position: absolute; left: 12px; right: 12px; bottom: 14px; padding: 9px 12px 10px; background: rgba(26,25,24,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(243,242,242,.08) !important; border-radius: 8px; box-shadow: none; transition: opacity 1s ease 1.6s; }
+  .cf2s-mini { display: block; position: absolute; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); padding: 9px 12px 10px; background: rgba(26,25,24,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(243,242,242,.08) !important; border-radius: 8px; box-shadow: none; transition: opacity 1s ease 1.6s; }
   .cf2s-mini-prog { display: none; }
   .cf2s-mini-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .cf2s-mini strong { font-family: var(--font-heading); font-weight: 400; font-size: 20px; color: rgba(243,242,242,.92); line-height: 1; letter-spacing: -.01em; }
@@ -240,5 +240,5 @@ html.cf-lang-out .cf2root > :not(.cf2n):not(.cf2n-scrim):not(.cf2-loader) { opac
 @media (max-width: 819px) {
   html.cf-snap { scroll-snap-type: y mandatory; }
   html.cf-snap #intro { scroll-snap-align: start; }
-  html.cf-snap #top { scroll-snap-align: start; scroll-snap-stop: always; }
+  html.cf-snap #top, html.cf-snap #manifesto { scroll-snap-align: start; scroll-snap-stop: always; }
 }

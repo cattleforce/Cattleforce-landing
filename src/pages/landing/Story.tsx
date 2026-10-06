@@ -534,14 +534,19 @@ export default function Story() {
     window.addEventListener('touchcancel', onTouchUp, { passive: true })
     window.addEventListener('touchmove', onInput, { passive: true })
 
-    // phones: while the hero is above the story, native scroll-snap (mandatory, stop: always) catches even a hard flick at the story's top edge,
-    // smoothly and without fighting the momentum. It is switched off once we have arrived, so scrolling on from the story is free.
+    // phones: native scroll-snap (mandatory, stop: always) catches even a hard flick at the story's top edge, from above (hero) or from below (typed text),
+    // smoothly and without fighting the momentum. It is off everywhere else, so the rest of the page scrolls freely.
     const root = document.documentElement
     let snapRaf = 0
     const updateSnap = () => {
       snapRaf = 0
-      const el = secRef.current
-      const on = !!el && innerWidth < 820 && !navigating() && scrollY < el.getBoundingClientRect().top + scrollY - 2
+      const el = secRef.current, man = document.getElementById('manifesto')
+      let on = false
+      if (el && innerWidth < 820 && !navigating()) {
+        const top = el.getBoundingClientRect().top + scrollY, manTop = man ? man.getBoundingClientRect().top + scrollY : top + el.offsetHeight
+        // snapping is live from the hero down to the story, and between the story and the typed text, so the story always lands exactly in frame
+        on = scrollY < top - 2 || (scrollY > top + 2 && scrollY < manTop - 2)
+      }
       root.classList.toggle('cf-snap', on)
     }
     const onSnapScroll = () => { if (!snapRaf) snapRaf = requestAnimationFrame(updateSnap) }
