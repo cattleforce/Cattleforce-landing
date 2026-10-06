@@ -321,3 +321,23 @@
   #product { min-height: 0; padding: 72px 16px 28px; justify-content: flex-start; }
   #product .cf2-stack { gap: 14px; }
 }
+
+/* ── Testimonials on phones: swipeable cards (photo + words in one card) ── */
+.cf2-tcards, .cf2-tdots { display: none; }
+@media (max-width: 760px) {
+  #field .cf2-field-grid { display: none; }
+  #field { min-height: 0; padding: 72px 0 40px; justify-content: flex-start; }
+  #field .cf2-wrap { padding: 0 16px; }
+  .cf2-tcards { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px 16px 6px; margin: 18px 0 0; position: relative; z-index: 2; }
+  .cf2-tcards::-webkit-scrollbar { display: none; }
+  .cf2-tcard { flex: 0 0 84%; scroll-snap-align: center; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(243,242,242,.14); border-radius: 14px; background: rgba(26,25,24,.72); box-shadow: 0 18px 40px -22px rgba(0,0,0,.7); }
+  .cf2-tcard img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: center 22%; background: #1c1b1a; }
+  .cf2-tcard-body { display: flex; flex-direction: column; gap: 4px; padding: 16px 16px 18px; }
+  .cf2-tcard-body strong { font-family: var(--font-heading); font-weight: 400; font-size: 26px; line-height: 1.05; letter-spacing: -.015em; }
+  .cf2-tcard-body span { font-size: 13px; color: rgba(243,242,242,.85); }
+  .cf2-tcard-body .cf2-place { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #68c6a4; }
+  .cf2-tcard-body p { margin: 10px 0 0; font-size: 15px; line-height: 1.55; color: rgba(243,242,242,.92); }
+  .cf2-tdots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; position: relative; z-index: 2; }
+  .cf2-tdots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 9999px; background: rgba(243,242,242,.3); cursor: pointer; transition: width .25s ease, background .25s ease; }
+  .cf2-tdots button.on { width: 22px; background: #68c6a4; }
+}
