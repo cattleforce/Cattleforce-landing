@@ -298,6 +298,15 @@ export function Effects() {
       if (!t) return
       e.preventDefault()
       // plain smooth scroll, landing exactly on the section's top edge (so its full background is in view)
+      // tell the story's stepped scrolling to stand aside while this jump is in flight, so it can't stop us on a chapter on the way
+      const w = window as unknown as { __cfNav?: boolean }
+      w.__cfNav = true
+      window.dispatchEvent(new Event('cf:nav'))
+      let t0 = 0
+      const end = () => { w.__cfNav = false; removeEventListener('scroll', bump) }
+      const bump = () => { clearTimeout(t0); t0 = window.setTimeout(end, 180) }
+      addEventListener('scroll', bump, { passive: true })
+      t0 = window.setTimeout(end, 500)
       window.scrollTo({ top: Math.max(0, t.getBoundingClientRect().top + scrollY), behavior: 'smooth' })
     }
     document.addEventListener('click', onClick)

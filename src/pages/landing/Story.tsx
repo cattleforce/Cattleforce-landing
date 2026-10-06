@@ -361,6 +361,7 @@ export default function Story() {
     }
     let wasPinned = false
     const locked = () => performance.now() < step.current.lockUntil
+    const navigating = () => (window as unknown as { __cfNav?: boolean }).__cfNav === true // an anchor jump (e.g. Book a demo) is in flight
 
     // returns the chapter to move to for a scroll direction (+1 down / -1 up), or null to let the page scroll normally
     const decide = (dir: number) => {
@@ -377,7 +378,7 @@ export default function Story() {
     // desktop / trackpad: scroll normally. When scrolling stops, ease into the chapter you were heading to and hold there.
     let rest = 0, idle = 0
     const settle = () => {
-      if (!pinned() || step.current.busy || locked()) return
+      if (navigating() || !pinned() || step.current.busy || locked()) return
       const el = secRef.current!
       const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight))) * 4
       const delta = sPos - rest
@@ -388,6 +389,7 @@ export default function Story() {
       if (Math.abs(scrollY - chapterY(target)) > 2) goCh(target, true)
     }
     const onScrollIdle = () => {
+      if (navigating()) { clearTimeout(idle); return }
       if (!pinned()) { wasPinned = false; return }
       if (!wasPinned) { wasPinned = true; rest = current() }
       if (step.current.busy) return
@@ -470,6 +472,7 @@ export default function Story() {
     step.current.setHold = (y: number) => { holdY = y; armHold() }
     const onEntry = () => {
       const y = scrollY, c0 = chapterY(0)
+      if (navigating()) { holdY = null; prevY = y; return }
       // arriving from the hero: land on the first chapter, never beyond it
       if (holdY === null && !step.current.busy && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
       prevY = y
@@ -490,10 +493,11 @@ export default function Story() {
       document.documentElement.style.overflow = ''
     }
     window.addEventListener('wheel', interrupt, { passive: true })
+    window.addEventListener('cf:nav', interrupt)
     window.addEventListener('touchstart', interrupt, { passive: true })
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
-      window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt)
+      window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt); window.removeEventListener('cf:nav', interrupt)
       window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
