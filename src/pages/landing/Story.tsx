@@ -307,7 +307,7 @@ export default function Story() {
   }, [])
 
   // ── stepped scrolling: one scroll / swipe moves exactly one chapter, then the view holds ──
-  const step = useRef({ raf: 0, lockUntil: 0, busy: false, unlock: 0 })
+  const step = useRef<{ raf: number; lockUntil: number; busy: boolean; unlock: number; setHold?: (y: number) => void }>({ raf: 0, lockUntil: 0, busy: false, unlock: 0 })
 
   const chapterY = (c: number) => {
     const el = secRef.current!
@@ -336,7 +336,7 @@ export default function Story() {
       const k = Math.min(1, (now - t0) / dur)
       window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior })
       if (k < 1) step.current.raf = requestAnimationFrame(tick)
-      else step.current.busy = false
+      else { step.current.busy = false; step.current.setHold?.(to) }
     }
     step.current.raf = requestAnimationFrame(tick)
   }, [])
@@ -381,8 +381,8 @@ export default function Story() {
       const el = secRef.current!
       const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight))) * 4
       const delta = sPos - rest
-      // any real scroll (even one wheel notch) moves at least one chapter in that direction; a long flick lands on the nearest chapter
-      const moved = Math.abs(delta) > 0.04 ? (delta > 0 ? Math.max(rest + 1, Math.round(sPos)) : Math.min(rest - 1, Math.round(sPos))) : rest
+      // one scroll moves exactly one chapter in that direction, however hard the flick
+      const moved = Math.abs(delta) > 0.04 ? (delta > 0 ? rest + 1 : rest - 1) : rest
       const target = Math.max(0, Math.min(4, moved))
       rest = target
       if (Math.abs(scrollY - chapterY(target)) > 2) goCh(target, true)
@@ -446,19 +446,14 @@ export default function Story() {
       if (performance.now() - tStart < 120 && Math.abs(dy) < 150) return
       fire(dy)
     }
-    // one swipe = one chapter; an aggressive flick (fast and long) speeds through several, in either direction
+    // one swipe = one chapter, however hard the flick
     const fire = (dy: number) => {
       if (stepped) return
       stepped = true
       const dir = dy > 0 ? 1 : -1
-      const v = Math.abs(dy) / Math.max(1, performance.now() - tStart) // px per ms
-      const aggressive = v >= 2 && Math.abs(dy) >= 150
       const d = decide(dir)
       if (!d) return
-      if (aggressive && wasPinned) {
-        const n = v >= 3.6 ? 3 : 2
-        goCh(Math.max(0, Math.min(4, current() + dir * n)), false, true)
-      } else goCh(d.settle)
+      goCh(d.settle)
     }
     const onTouchEnd = () => { if (claim && !stepped && !locked() && Math.abs(lastDy) >= 22) fire(lastDy) }
     const onScrollState = () => { if (!pinned()) wasPinned = false }
@@ -467,8 +462,28 @@ export default function Story() {
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
-    // the user is never held: a wheel turn or a new touch during a step takes over straight away
-    const interrupt = () => {
+    // One scroll never carries past the section it was heading for: once a step (or the arrival from the hero) lands, the page is pinned there
+    // until the scroll input (wheel / finger, including its momentum) has stopped for a moment. The next fresh scroll then moves one step on.
+    let holdY: number | null = null, holdTimer = 0, prevY = scrollY
+    const coarse = matchMedia('(pointer: coarse)').matches
+    const armHold = () => { clearTimeout(holdTimer); holdTimer = window.setTimeout(() => { holdY = null }, coarse ? 380 : 170) }
+    step.current.setHold = (y: number) => { holdY = y; armHold() }
+    const onEntry = () => {
+      const y = scrollY, c0 = chapterY(0)
+      // arriving from the hero: land on the first chapter, never beyond it
+      if (holdY === null && !step.current.busy && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
+      prevY = y
+      if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) window.scrollTo({ top: holdY, behavior: 'instant' as ScrollBehavior })
+    }
+    const onInput = () => { if (holdY !== null) armHold() }
+    window.addEventListener('scroll', onEntry, { passive: true })
+    window.addEventListener('wheel', onInput, { passive: true })
+    window.addEventListener('touchmove', onInput, { passive: true })
+
+    // the user is never held: a fresh wheel gesture or a new touch during a step takes over straight away
+    let lastWheel = 0
+    const interrupt = (e: Event) => {
+      if (e.type === 'wheel') { const now = performance.now(), gap = now - lastWheel; lastWheel = now; if (gap < 170) return } // wheel events in quick succession are the same gesture (momentum), not a new one
       if (!step.current.busy && !locked()) return
       cancelAnimationFrame(step.current.raf); clearTimeout(step.current.unlock)
       step.current.busy = false; step.current.lockUntil = 0
@@ -479,6 +494,7 @@ export default function Story() {
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
       window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt)
+      window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
