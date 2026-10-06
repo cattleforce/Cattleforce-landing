@@ -197,11 +197,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid #68c6a4; outline-offs
 
 /* language switch (EN | ES) */
 .cf2n-lang { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,.3); font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
-.cf2n-lang { position: relative; }
+.cf2n-lang { position: relative; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.cf2n-lang button { -webkit-tap-highlight-color: transparent; }
 .cf2n-lang-thumb { position: absolute; top: 3px; left: 3px; height: 30px; width: 38px; border-radius: 9999px; background: #fff; transition: transform .35s cubic-bezier(.4,.1,.2,1), width .35s cubic-bezier(.4,.1,.2,1); pointer-events: none; }
 .cf2n-lang button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 30px; min-width: 38px; padding: 0 8px; border-radius: 9999px; color: #d4d4d4; transition: background .25s ease, color .25s ease, opacity .2s ease; }
 .cf2n-lang button:hover { opacity: .7; }
-.cf2n-lang button { position: relative; z-index: 1; }
+.cf2n-lang button { position: relative; z-index: 1; user-select: none; -webkit-user-select: none; }
 .cf2n-lang button.on { color: #000; opacity: 1; }
 .cf2n-lang button:focus-visible { outline: 2px solid #68c6a4; outline-offset: 2px; }
 

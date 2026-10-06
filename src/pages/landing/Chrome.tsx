@@ -15,7 +15,7 @@ function LangToggle() {
     <div className="cf2n-lang" role="group" aria-label={tx('Language')}>
       <span className="cf2n-lang-thumb" aria-hidden="true" style={{ transform: `translateX(${lang === 'es' ? 40 : 0}px)` }} />
       {([['en', 'EN', 'English'], ['es', 'ES', 'Español']] as const).map(([code, label, name]) => (
-        <button key={code} type="button" lang={code} aria-label={name} aria-pressed={lang === code} className={lang === code ? 'on' : ''} onClick={() => setLang(code)}>{label}</button>
+        <button key={code} type="button" lang={code} aria-label={name} aria-pressed={lang === code} className={lang === code ? 'on' : ''} onClick={e => { setLang(code); if (e.detail > 0) e.currentTarget.blur() /* tap or click: drop focus so no ring flashes; keyboard keeps it */ }}>{label}</button>
       ))}
     </div>
   )
