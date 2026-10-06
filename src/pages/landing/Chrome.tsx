@@ -72,6 +72,9 @@ export function Navbar() {
       const y = scrollY
       const inHero = y <= heroEnd()
       setScrolled(!inHero)
+      // phones: while the story is on screen the nav stays hidden, even when scrolling up
+      const story = document.getElementById('top')?.getBoundingClientRect()
+      if (innerWidth < 1024 && story && story.top <= 60 && story.bottom > 60) { setHidden(true); last = y; return }
       if (inHero) setHidden(false) // in the hero the nav is always shown
       else if (y > last + 4) setHidden(true) // scrolling down: hide
       else if (y < last - 4) setHidden(false) // scrolling up: show the short pill
