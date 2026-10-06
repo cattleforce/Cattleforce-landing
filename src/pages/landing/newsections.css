@@ -302,3 +302,16 @@
   .cf2-footer-row { flex-wrap: wrap; justify-content: center; text-align: center; gap: 12px 24px; }
   .cf2-footer-end { flex-wrap: wrap; justify-content: center; gap: 8px 18px; }
 }
+
+/* product frame caption: wrap instead of cutting off on narrow screens */
+@media (max-width: 760px) {
+  #product .cf2-frame-bar { height: auto; min-height: 48px; padding-top: 6px; padding-bottom: 6px; }
+  #product .cf2-frame-url { white-space: normal; text-overflow: clip; max-width: calc(100% - 84px); margin-left: 52px; text-align: center; line-height: 1.35; font-size: 9px; letter-spacing: .06em; padding: 4px 8px; }
+}
+
+/* phones: testimonials are swiped, so the prev / next buttons are hidden (the 01 / 03 counter stays) */
+@media (max-width: 760px) {
+  #field .cf2-field-nav button { display: none; }
+  #field .cf2-field-nav span { margin-left: 0; }
+  #field .cf2-field-grid { touch-action: pan-y; }
+}

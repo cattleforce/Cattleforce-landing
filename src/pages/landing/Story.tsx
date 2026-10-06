@@ -259,11 +259,117 @@ export default function Story() {
     }
   }, [heroReady])
 
-  const goCh = useCallback((c: number) => {
+  // ── stepped scrolling: one scroll / swipe moves exactly one chapter, then the view holds ──
+  const step = useRef({ raf: 0, lockUntil: 0, busy: false })
+
+  const chapterY = (c: number) => {
+    const el = secRef.current!
+    return el.getBoundingClientRect().top + scrollY + (c / 4) * (el.offsetHeight - innerHeight) + 1
+  }
+
+  // animate the page scroll to a chapter. soft = the gentle ease-out used when the page settles after normal scrolling.
+  const goCh = useCallback((c: number, soft = false) => {
     const el = secRef.current
     if (!el) return
-    window.scrollTo({ top: el.getBoundingClientRect().top + scrollY + (c / 4) * (el.offsetHeight - innerHeight) + 2, behavior: 'smooth' })
+    cancelAnimationFrame(step.current.raf)
+    const from = scrollY, to = chapterY(c), dist = Math.abs(to - from)
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const dur = reduce ? 1 : soft ? Math.max(450, Math.min(950, (dist / innerHeight) * 800)) : Math.max(650, Math.min(1100, (dist / innerHeight) * 850))
+    const t0 = performance.now()
+    step.current.busy = true
+    step.current.lockUntil = t0 + dur + (soft ? 150 : 650) // short hold after arriving so the chapter can be seen before the next move
+    const ease = soft ? (t: number) => -(Math.cos(Math.PI * t) - 1) / 2 : (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur)
+      window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior })
+      if (k < 1) step.current.raf = requestAnimationFrame(tick)
+      else step.current.busy = false
+    }
+    step.current.raf = requestAnimationFrame(tick)
   }, [])
+
+  useEffect(() => {
+    const stepState = step.current
+    const pinned = () => {
+      const el = secRef.current
+      if (!el) return false
+      const r = el.getBoundingClientRect()
+      return r.top <= 1 && r.bottom >= innerHeight - 1
+    }
+    const current = () => {
+      const el = secRef.current!
+      const p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - innerHeight))
+      return Math.round(p * 4)
+    }
+    let wasPinned = false
+    const locked = () => performance.now() < step.current.lockUntil
+
+    // returns the chapter to move to for a scroll direction (+1 down / -1 up), or null to let the page scroll normally
+    const decide = (dir: number) => {
+      if (!pinned()) { wasPinned = false; return null }
+      if (!wasPinned) {
+        wasPinned = true
+        // just arrived (e.g. with scroll momentum) and not resting on a chapter yet: settle on the nearest one first, don't skip any
+        if (Math.abs(scrollY - chapterY(current())) > 12) return { settle: current() }
+      }
+      const t = current() + dir
+      return t < 0 || t > 4 ? null : { settle: t }
+    }
+
+    // desktop / trackpad: scroll normally. When scrolling stops, ease into the chapter you were heading to and hold there.
+    let rest = 0, idle = 0
+    const settle = () => {
+      if (!pinned() || step.current.busy || locked()) return
+      const el = secRef.current!
+      const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - innerHeight)) * 4
+      const delta = sPos - rest
+      // any real scroll (even one wheel notch) moves at least one chapter in that direction; a long flick lands on the nearest chapter
+      const moved = Math.abs(delta) > 0.04 ? (delta > 0 ? Math.max(rest + 1, Math.round(sPos)) : Math.min(rest - 1, Math.round(sPos))) : rest
+      const target = Math.max(0, Math.min(4, moved))
+      rest = target
+      if (Math.abs(scrollY - chapterY(target)) > 2) goCh(target, true)
+    }
+    const onScrollIdle = () => {
+      if (!pinned()) { wasPinned = false; return }
+      if (!wasPinned) { wasPinned = true; rest = current() }
+      if (step.current.busy) return
+      clearTimeout(idle)
+      idle = window.setTimeout(settle, 200)
+    }
+
+    // touch: one swipe = one chapter
+    let y0 = 0, stepped = false, claim = false
+    const onTouchStart = (e: TouchEvent) => { y0 = e.touches[0].clientY; stepped = false; claim = false }
+    const onTouchMove = (e: TouchEvent) => {
+      if (!pinned()) { wasPinned = false; return }
+      const dy = y0 - e.touches[0].clientY // > 0: finger moved up = scrolling down
+      if (!claim) {
+        if (Math.abs(dy) < 4) return
+        const dir = dy > 0 ? 1 : -1
+        const t = current() + dir
+        if (!locked() && (t < 0 || t > 4) && wasPinned) return // at the very start/end: let the page scroll on normally
+        claim = true
+      }
+      e.preventDefault() // we own this gesture: the page must not scroll on its own
+      if (stepped || locked() || Math.abs(dy) < 22) return
+      const d = decide(dy > 0 ? 1 : -1)
+      stepped = true
+      if (d) goCh(d.settle)
+    }
+    const onScrollState = () => { if (!pinned()) wasPinned = false }
+
+    window.addEventListener('scroll', onScrollIdle, { passive: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('scroll', onScrollState, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('scroll', onScrollState)
+      cancelAnimationFrame(stepState.raf)
+    }
+  }, [goCh])
 
   // expose "go to story" for the intro button
   useEffect(() => {
@@ -276,7 +382,8 @@ export default function Story() {
   const s = p * 4
   const ch = (c: number) => {
     const o = clamp(1 - Math.abs(s - c) * 2.6 + 0.3)
-    return { opacity: o.toFixed(3), transform: `translate3d(0, calc(-50% + ${((c - s) * 90).toFixed(1)}px), 0)`, pointerEvents: (o > 0.5 ? 'auto' : 'none') as 'auto' | 'none' }
+    // phones: text is anchored near the top (no vertical centring) so the animation can sit higher and fully on screen
+    return { opacity: o.toFixed(3), transform: narrow ? `translate3d(0, ${((c - s) * 60).toFixed(1)}px, 0)` : `translate3d(0, calc(-50% + ${((c - s) * 90).toFixed(1)}px), 0)`, pointerEvents: (o > 0.5 ? 'auto' : 'none') as 'auto' | 'none' }
   }
   const act = Math.round(s)
   const inO = ready ? 1 : 0
@@ -328,6 +435,7 @@ export default function Story() {
         <div className="cf2s-text" style={{ top: narrow ? '72px' : '0px', height: narrow ? '44vh' : '100vh', width: narrow ? 'calc(100% - 32px)' : 'min(440px, 31vw)' }}>
           <div className="cf2s-c0" style={{ width: narrow ? '100%' : 'min(760px, 52vw)', ...c0, opacity: (Number(c0.opacity) * inO).toFixed(3) }}>
             <h1>Here&apos;s how we make a<br /><em>difference</em></h1>
+            <p>For representational purpose, each dot<br />represents a single animal in your herd.</p>
           </div>
 
           <div className="cf2s-ch" style={ch(1)}>
@@ -372,6 +480,20 @@ export default function Story() {
             )}
             <span className="cf2s-card-foot" style={{ color: rec.footC }}>{rec.foot}</span>
           </div>
+        </div>
+
+        <div className="cf2s-mini" aria-live="polite" style={{ opacity: inO }}>
+          <div className="cf2s-mini-row">
+            <strong>{rec.tag}</strong>
+            <span style={{ color: rec.acc }}>● {rec.badge}</span>
+          </div>
+          <p style={{ color: rec.spark ? rec.footC : undefined }}>
+            {rec.spark
+              ? rec.foot
+              : stg === 2
+                ? `${rec.f[1].v} · ${rec.f[2].v}/day · ${rec.f[3].v} vs curve`
+                : rec.f.slice(1).map(x => x.v).join(' · ')}
+          </p>
         </div>
 
         <nav ref={railRef} aria-label="Chapters" className="cf2s-rail" style={{ opacity: inO }}>
