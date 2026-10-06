@@ -79,8 +79,16 @@ export const ES: Record<string, string> = {
   // page meta
   'Cattle Force — The Operating System for Modern Cattle Farms': 'Cattle Force — El sistema operativo para granjas ganaderas modernas',
   'Capability': 'Capacidad', 'Scroll to the next section': 'Ir a la siguiente sección', 'Cattle Force includes all': 'Cattle Force incluye todo', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
+  'About': 'Sobre', 'Us': 'nosotros', 'About us': 'Nosotros',
+  'We come from farming families. We\u2019ve seen how hard life on the farm can be, and how much the right technology can change it. Our vision is to make farmers smarter, with tools that work as hard as they do.': 'Venimos de familias agricultoras. Hemos visto lo dura que puede ser la vida en el campo y cuánto puede cambiarla la tecnología adecuada. Nuestra visión es hacer a los agricultores más inteligentes, con herramientas que trabajan tan duro como ellos.',
+  'Cattle Force isn\u2019t a subscription you buy online and then figure out alone. We build it alongside farmers, with trust at the center. We commit to each farm we work with and solve the real, practical problems that come up in daily operations, from tracking every animal to alerting you when your cattle need attention.': 'Cattle Force no es una suscripción que compras en línea y luego resuelves por tu cuenta. La construimos junto a los agricultores, con la confianza en el centro. Nos comprometemos con cada granja con la que trabajamos y resolvemos los problemas reales y prácticos del día a día, desde el seguimiento de cada animal hasta avisarte cuando tu ganado necesita atención.',
+  'Built with farmers, for farmers, by farmers.': 'Hecho con agricultores, para agricultores, por agricultores.',
+  'Co-founder and Technology': 'Cofundador y Tecnología', 'Co-founder and Product': 'Cofundador y Producto', 'Field Growth & Partnership': 'Crecimiento en campo y Alianzas',
+  'Nikhil leads the engineering and builds the platform that turns the realities of herd management into a system farmers can rely on.': 'Nikhil lidera la ingeniería y construye la plataforma que convierte las realidades del manejo del hato en un sistema en el que los agricultores pueden confiar.',
+  'Ashrith shapes the product around what farmers need and leads operations and growth.': 'Ashrith da forma al producto según lo que necesitan los agricultores y lidera las operaciones y el crecimiento.',
+  'Our pioneering farm partner and field lead. He uses real-world feedback to guide product development and spearheads our South American expansion.': 'Nuestro granjero socio pionero y líder de campo. Usa la retroalimentación del mundo real para guiar el desarrollo del producto y encabeza nuestra expansión en Sudamérica.',
   'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para granjas ganaderas modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
 }
 
-export const MAN_ES = 'Cattle Force reemplaza los cuadernos y las hojas de cálculo con una plataforma inteligente que gestiona tu hato, tu equipo y tus finanzas, para que toda tu granja funcione como una sola.'
+export const MAN_ES = 'Cattle Force reemplaza los cuadernos y las hojas de cálculo con una plataforma inteligente que gestiona tu hato, equipo y finanzas, para que toda tu granja funcione como una sola.'
 export const MAN_ITAL_ES = new Set(['funcione', 'como', 'una', 'sola.'])

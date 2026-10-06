@@ -427,6 +427,7 @@
 @media (max-width: 760px) {
   html[lang="es"] #product .cf2-h2--xl { font-size: clamp(22px, 5.2vw, 88px); }
   html[lang="es"] #features .cf2-h2--lg { font-size: clamp(25px, 6.1vw, 56px); }
+  html[lang="es"] #about .cf2-h2--lg { font-size: clamp(25px, 6.1vw, 56px); }
   html[lang="es"] #field .cf2-h2--field { font-size: clamp(24px, 4.7vw, 80px); }
   html[lang="es"] #demo .cf2-demo-h { font-size: clamp(30px, 8.2vw, 44px); }
   html[lang="es"] #demo .cf2-demo-title { font-size: clamp(20px, 5.6vw, 24px); }
@@ -447,3 +448,7 @@
   #product .cf2-frame { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.28); }
   .cf2-dc-in { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.35); }
 }
+
+/* feature index on black: light type, and the card gets a soft light glow / rim instead of black shadows (which would vanish) */
+.cf2-feat-black { background: #0f0e0d; }
+.cf2-feat-black .cf2-h2 { color: #f3f2f2; }

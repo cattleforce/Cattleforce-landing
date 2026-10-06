@@ -35,3 +35,8 @@
   .cf-outerglow { display: none; }
   .cf-shell { box-shadow: 0 2px 4px rgba(11,10,9,.06), 0 14px 30px -12px rgba(11,10,9,.28) !important; }
 }
+
+/* the card sits on black: mint glow + hairline rim */
+.cf-outerglow { background: #8fd9bd !important; opacity: .2 !important; }
+.cf-shell { box-shadow: 0 0 0 1px rgba(243,242,242,.16), 0 2px 4px rgba(0,0,0,.5), 0 30px 80px -24px rgba(104,198,164,.28) !important; }
+@media (max-width: 760px) { .cf-shell { box-shadow: 0 0 0 1px rgba(243,242,242,.16), 0 2px 4px rgba(0,0,0,.5), 0 18px 40px -20px rgba(104,198,164,.25) !important; } }

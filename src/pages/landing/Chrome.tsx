@@ -6,7 +6,8 @@ import { clamp } from './herd'
 import { setLang, tx, useLang } from '../../i18n'
 
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'https://app.cattleforce.in'
-const NAV = [['Product', '#product'], ['Features', '#features'], ['Testimonials', '#field'], ['Questions', '#faq']]
+// ['Testimonials', '#field'] is left out while the testimonials section is hidden (see SHOW_TESTIMONIALS in NewSections.tsx)
+const NAV = [['Product', '#product'], ['Features', '#features'], ['About us', '#about'], ['Questions', '#faq']]
 
 /** EN | ES switch, shown in the footer. */
 export function LangToggle() {

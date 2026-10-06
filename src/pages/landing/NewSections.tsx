@@ -6,6 +6,7 @@ import appPedigree from '../../assets/new/app-pedigree.png'
 import logoWhite from '../../assets/new/logo-lockup-white.png'
 import FeatureCard from './feature-card/FeatureCard'
 import { GridBackdrop, LangToggle, RippleLayer } from './Chrome'
+import AboutUs from './AboutUs'
 import { MAN_ES, MAN_ITAL_ES } from '../../i18n/es'
 import { tx, useLang } from '../../i18n'
 import './newsections.css'
@@ -14,7 +15,7 @@ import './newsections.css'
 /* ── Data (from the design's constants) ─────────────────── */
 
 const MAN =
-  'Cattle Force replaces notebooks and spreadsheets with a smart platform that manages your herd, your team and your finances, so your whole farm runs as one.'
+  'Cattle Force replaces notebooks and spreadsheets with a smart platform that manages your herd, team and finances, so your whole farm runs as one.'
 const manWords = (s: string) => s.split(' ').map((w, i, arr) => ({ w, pos: arr.slice(0, i).reduce((n, x) => n + x.length + 1, 0) }))
 const MAN_WORDS = manWords(MAN)
 const MAN_WORDS_ES = manWords(MAN_ES)
@@ -226,11 +227,10 @@ function Product() {
 function Features() {
   useLang()
   return (
-    <section id="features" data-sec className="cf2-light cf2-pad cf2-pad--feat">
-      <GridBackdrop mask="ellipse 85% 75% at 50% 45%" bg="#f3f2f2" />
+    <section id="features" data-sec className="cf2-dark cf2-pad cf2-pad--feat cf2-feat-black">
       <div className="cf2-wrap">
         <div className="cf2-head" data-rv>
-          <Label>{tx('Feature index')}</Label>
+          <Label dark>{tx('Feature index')}</Label>
           <h2 className="cf2-h2 cf2-h2--lg">{tx('Everything the')} <em>{tx('farm', 'granja.')}</em>{tx(' runs on.')}</h2>
         </div>
         <div className="cf2-fwrap">
@@ -572,6 +572,9 @@ function Footer() {
   )
 }
 
+// Temporarily hidden until the real testimonials are ready: set to true to bring the section (and its nav link in Chrome.tsx) back.
+const SHOW_TESTIMONIALS = false
+
 export default function NewSections() {
   useReveal()
   return (
@@ -579,7 +582,8 @@ export default function NewSections() {
       <Manifesto />
       <Product />
       <Features />
-      <Field />
+      {SHOW_TESTIMONIALS && <Field />}
+      <AboutUs />
       <Faq />
       <Demo />
       <Footer />
