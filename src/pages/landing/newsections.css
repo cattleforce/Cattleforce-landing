@@ -315,3 +315,9 @@
   #field .cf2-field-nav span { margin-left: 0; }
   #field .cf2-field-grid { touch-action: pan-y; }
 }
+
+/* phones: the product section is only as tall as its content (no big blank space above or below) */
+@media (max-width: 760px) {
+  #product { min-height: 0; padding: 72px 16px 28px; justify-content: flex-start; }
+  #product .cf2-stack { gap: 14px; }
+}

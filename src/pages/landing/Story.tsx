@@ -19,6 +19,8 @@ export default function Story() {
   const secRef = useRef<HTMLElement>(null)
   const cvRef = useRef<HTMLCanvasElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const miniRef = useRef<HTMLDivElement>(null)
+  const stickRef = useRef<HTMLDivElement>(null)
   const railRef = useRef<HTMLElement>(null)
   const [ui, setUi] = useState<UI>({ ready: false, narrow: false, p: 0, now: 0, sel: 0, hov: false, stg: 0, selT: 0 })
   const selT = useRef(0)
@@ -71,19 +73,24 @@ export default function Story() {
     const onScroll = () => {
       const el = secRef.current
       if (!el) return
-      p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - innerHeight))
+      p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)))
       goMaybe()
       push({ p })
     }
     ;(document.fonts?.ready ?? Promise.resolve()).then(() => { fontsOK = true; goMaybe() })
 
-    const pick = (stg: number) => {
-      cyc++
-      if (stg === 1) { const l = BYST[cyc % 5]; return l[Math.floor(Math.random() * l.length)] }
-      if (stg === 2) return SLOW[cyc % SLOW.length]
-      if (stg === 3) return PED[cyc % 7]
-      if (stg === 4) return ALERT
-      return Math.floor(Math.random() * N)
+    const pick = (stg: number): number => {
+      const one = (): number => {
+        cyc++
+        if (stg === 1) { const l = BYST[cyc % 5]; return l[Math.floor(Math.random() * l.length)] }
+        if (stg === 2) return SLOW[cyc % SLOW.length]
+        if (stg === 3) return PED[cyc % 7]
+        if (stg === 4) return ALERT
+        return Math.floor(Math.random() * N)
+      }
+      // on phones only every other dot is drawn (except in the lineage view), so only pick drawn ones
+      for (let t = 0; t < 12; t++) { const i = one(); if (!lay?.half || stg === 3 || i % 2 === 0) return i }
+      return ALERT
     }
 
     const frame = (ms: number) => {
@@ -93,7 +100,7 @@ export default function Story() {
       if (!lay || !sec) return
       const sr = sec.getBoundingClientRect()
       if (sr.bottom < 0 || sr.top > innerHeight) return // off-screen: don't spend the main thread (keeps the hero video smooth)
-      const { L, lab: lb, SQ, SZ } = lay
+      const { L, lab: lb, SQ, SZ, rankOf, counts, slowCount, half } = lay
       const s = p * 4, a = Math.min(3, Math.floor(s)), t = clamp((s - a - 0.15) / 0.7)
       const wk = (k: number) => clamp(1 - Math.abs(s - k) * 2.2)
       const w1 = wk(1), w2 = wk(2), w3 = wk(3), w4 = wk(4)
@@ -103,10 +110,10 @@ export default function Story() {
 
       if (w1 > 0.01) {
         STG.forEach((g, si) => {
-          const x = lb.sx[si], top = lb.base - Math.ceil(g[2] / lb.u) * lb.s2
+          const x = lb.sx[si], top = lb.base - Math.ceil(counts[si] / lb.u) * lb.s2
           ctx.fillStyle = `rgba(243,242,242,${0.6 * w1})`; ctx.font = mono; ctx.fillText(g[0].toUpperCase(), x, lb.base + 18)
           ctx.fillStyle = `rgba(243,242,242,${w1})`; ctx.font = '400 26px "Instrument Serif", serif'
-          ctx.fillText(String(Math.round(g[2] * clamp(w1 * 1.4))), x, top - 10)
+          ctx.fillText(String(Math.round(counts[si] * clamp(w1 * 1.4))), x, top - 10)
         })
       }
       if (w2 > 0.01) {
@@ -125,7 +132,7 @@ export default function Story() {
         ctx.stroke()
         ctx.fillStyle = `rgba(104,198,164,${w2})`; ctx.fillText('EXPECTED GROWTH', X(mm) - 110, Y(baseW(mm)) - 12)
         ctx.textAlign = 'right'; ctx.fillStyle = `rgba(243,242,242,${0.8 * w2})`
-        ctx.fillText(SLOW.length + ' BELOW THE CURVE', lb.gL + lb.gw, lb.gB - lb.gh + 4); ctx.textAlign = 'left'
+        ctx.fillText(slowCount + ' BELOW THE CURVE', lb.gL + lb.gw, lb.gB - lb.gh + 4); ctx.textAlign = 'left'
       }
 
       const La = L[a], Lb = L[a + 1], act0 = n - t0
@@ -175,8 +182,9 @@ export default function Story() {
         if (w4 > 0) {
           if (i === ALERT) { mix(RED, w4); al += (1 - al) * w4 }
           else { const f = clamp(1 - Math.abs(y - scanY) / (lb.gs * 1.5)); al -= (al - 0.12 - f * 0.4) * w4 }
-          if (i >= SQ) al *= 1 - w4
+          if (rankOf[i] >= SQ || rankOf[i] < 0) al *= 1 - w4
         }
+        if (half && (i & 1)) al *= w3 // phones: every other dot only appears in the lineage view
         const z = (i === ALERT ? sz * (1 + w4 * 1.2) : sz) * (0.7 + d.z * 0.4)
         ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},${clamp(al).toFixed(3)})`
         ctx.fillRect(x - z / 2, y - z / 2, z, z)
@@ -215,13 +223,32 @@ export default function Story() {
         const x = cur[sel * 2], y = cur[sel * 2 + 1], pulse = (n * 0.9) % 1, rr = 7 + pulse * 18
         if (!red) { ctx.strokeStyle = `rgba(${col},${0.9 * (1 - pulse)})`; ctx.lineWidth = 1; ctx.strokeRect(x - rr, y - rr, rr * 2, rr * 2) }
         ctx.strokeStyle = `rgb(${col})`; ctx.lineWidth = 1.5; ctx.strokeRect(x - 7, y - 7, 14, 14)
-        const card = cardRef.current
-        if (card && !state.narrow) {
+        const card = state.narrow ? miniRef.current : cardRef.current
+        if (card) {
           const cr = cv.getBoundingClientRect(), bb = card.getBoundingClientRect()
-          const ex = bb.left - cr.left, ey = bb.top - cr.top + 44, k = eIO(clamp((n - selStart) / 0.6))
-          ctx.strokeStyle = `rgba(${col},0.6)`; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(x + 7, y)
-          const mxp = x + 7 + (ex - x - 7) * k
-          ctx.lineTo(mxp, y); ctx.lineTo(mxp, y + (ey - y) * k); ctx.stroke(); ctx.setLineDash([])
+          const k = eIO(clamp((n - selStart) / 0.6))
+          ctx.strokeStyle = `rgba(${col},0.6)`; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath()
+          if (!state.narrow) {
+            const ex = bb.left - cr.left, ey = bb.top - cr.top + 44
+            ctx.moveTo(x + 7, y)
+            const mxp = x + 7 + (ex - x - 7) * k
+            ctx.lineTo(mxp, y); ctx.lineTo(mxp, y + (ey - y) * k)
+          } else {
+            // phones: dotted line runs down from the animal to the info card at the bottom
+            const ey = bb.top - cr.top, tx = Math.min(bb.right - cr.left - 18, Math.max(bb.left - cr.left + 18, x))
+            if (ey > y + 24) {
+              const pts = [[x, y + 7], [x, ey - 14], [tx, ey - 14], [tx, ey]]
+              const seg = pts.slice(1).map((q, j) => Math.hypot(q[0] - pts[j][0], q[1] - pts[j][1]))
+              let left = seg.reduce((a, b2) => a + b2, 0) * k
+              ctx.moveTo(pts[0][0], pts[0][1])
+              for (let j = 0; j < seg.length && left > 0; j++) {
+                const f = Math.min(1, left / (seg[j] || 1))
+                ctx.lineTo(pts[j][0] + (pts[j + 1][0] - pts[j][0]) * f, pts[j][1] + (pts[j + 1][1] - pts[j][1]) * f)
+                left -= seg[j]
+              }
+            }
+          }
+          ctx.stroke(); ctx.setLineDash([])
         }
       }
 
@@ -264,7 +291,7 @@ export default function Story() {
 
   const chapterY = (c: number) => {
     const el = secRef.current!
-    return el.getBoundingClientRect().top + scrollY + (c / 4) * (el.offsetHeight - innerHeight) + 1
+    return el.getBoundingClientRect().top + scrollY + (c / 4) * (el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)) + 1
   }
 
   // animate the page scroll to a chapter. soft = the gentle ease-out used when the page settles after normal scrolling.
@@ -294,11 +321,11 @@ export default function Story() {
       const el = secRef.current
       if (!el) return false
       const r = el.getBoundingClientRect()
-      return r.top <= 1 && r.bottom >= innerHeight - 1
+      return r.top <= 1 && r.bottom >= (stickRef.current?.offsetHeight ?? innerHeight) - 1
     }
     const current = () => {
       const el = secRef.current!
-      const p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - innerHeight))
+      const p = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)))
       return Math.round(p * 4)
     }
     let wasPinned = false
@@ -321,7 +348,7 @@ export default function Story() {
     const settle = () => {
       if (!pinned() || step.current.busy || locked()) return
       const el = secRef.current!
-      const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - innerHeight)) * 4
+      const sPos = clamp(-el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight))) * 4
       const delta = sPos - rest
       // any real scroll (even one wheel notch) moves at least one chapter in that direction; a long flick lands on the nearest chapter
       const moved = Math.abs(delta) > 0.04 ? (delta > 0 ? Math.max(rest + 1, Math.round(sPos)) : Math.min(rest - 1, Math.round(sPos))) : rest
@@ -428,7 +455,7 @@ export default function Story() {
 
   return (
     <section id="top" ref={secRef} className="cf2s" style={{ height: '600vh' }}>
-      <div className="cf2s-stick">
+      <div ref={stickRef} className="cf2s-stick">
         <canvas ref={cvRef} className="cf2s-canvas" aria-hidden="true" />
         <div className="cf2s-vignette" aria-hidden="true" />
 
@@ -482,7 +509,7 @@ export default function Story() {
           </div>
         </div>
 
-        <div className="cf2s-mini" aria-live="polite" style={{ opacity: inO }}>
+        <div ref={miniRef} className="cf2s-mini" aria-live="polite" style={{ opacity: inO }}>
           <div className="cf2s-mini-row">
             <strong>{rec.tag}</strong>
             <span style={{ color: rec.acc }}>● {rec.badge}</span>

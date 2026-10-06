@@ -89,6 +89,10 @@ export const PEDSLOT = new Int32Array(N)
 PED.forEach((di, s) => { PEDSLOT[di] = s })
 
 export interface Layout {
+  half: boolean // phones: only every other dot is drawn (clearer, bigger dots) — except in the lineage view
+  rankOf: Int32Array // position of each dot within the drawn set (-1 = not drawn on phones)
+  counts: number[] // dots per life stage that are actually drawn
+  slowCount: number // slow-growth dots actually drawn
   L: Float32Array[]
   A: { x: number; y: number; w: number; h: number }
   SQ: number
@@ -114,13 +118,35 @@ export function computeLayout(W: number, H: number): Layout {
     L[0][i * 2] = cx + q[0] * A.w * 1.3 + d.gx * A.w * 0.1
     L[0][i * 2 + 1] = cy + q[1] * A.h + d.gy * A.h * 0.085
   })
-  const cw = A.w / 5, u = nar ? 7 : 9
-  const s2 = Math.min((cw * 0.82) / u, (A.h - 56) / Math.ceil(490 / u))
+  const cw = A.w / 5
+  // which dots are drawn: everything on desktop; every other dot on phones
+  const half = nar
+  const rankOf = new Int32Array(N)
+  const stageRank = [0, 0, 0, 0, 0]
+  const counts = [0, 0, 0, 0, 0]
+  const kr = new Int32Array(N) // rank inside its stage, among drawn dots
+  let kept = 0
+  DOTS.forEach((_, i) => { rankOf[i] = !half ? i : (i % 2 === 0 ? kept++ : -1) })
+  ;[...DOTS].sort((p, q) => p.rank - q.rank).forEach(d => {
+    if (half && d.i % 2 !== 0) return
+    kr[d.i] = stageRank[d.st]++; counts[d.st]++
+  })
+  if (!half) STG.forEach((s, si) => { counts[si] = s[2] })
+  const maxC = Math.max(...counts)
+  let u = 9, s2 = 0
+  if (nar) {
+    // pick the number of columns per bar that gives the biggest cells that still fit the chart height
+    for (let c = 3; c <= 9; c++) {
+      const v = Math.min((cw * 0.82) / c, (A.h - 56) / Math.ceil(maxC / c))
+      if (v > s2) { s2 = v; u = c }
+    }
+  } else s2 = Math.min((cw * 0.82) / u, (A.h - 56) / Math.ceil(490 / u))
   const base = A.y + A.h - 26
   const sx = STG.map((_, si) => A.x + si * cw + (cw - u * s2) / 2)
   DOTS.forEach((d, i) => {
-    L[1][i * 2] = sx[d.st] + (d.rank % u) * s2 + s2 / 2
-    L[1][i * 2 + 1] = base - Math.floor(d.rank / u) * s2 - s2 / 2
+    const r = half ? kr[i] : d.rank
+    L[1][i * 2] = sx[d.st] + (r % u) * s2 + s2 / 2
+    L[1][i * 2 + 1] = base - Math.floor(r / u) * s2 - s2 / 2
   })
   const gL = A.x + 40, gB = A.y + A.h - 24, gw = A.w - 48, gh = A.h - 36
   DOTS.forEach((d, i) => {
@@ -141,15 +167,20 @@ export function computeLayout(W: number, H: number): Layout {
     }
     L[3][di * 2] = x; L[3][di * 2 + 1] = y
   })
-  const side = Math.floor(Math.sqrt(N)), g = { s: Math.min(A.w, A.h) / side, c: side, r: side }
+  const drawn = half ? Math.ceil(N / 2) : N
+  const side = Math.floor(Math.sqrt(drawn)), g = { s: Math.min(A.w, A.h) / side, c: side, r: side }
   const SQ = side * side
   const gx0 = A.x + (A.w - g.c * g.s) / 2 + g.s / 2, gy0 = A.y + (A.h - g.r * g.s) / 2 + g.s / 2
+  // phones: swap the alert dot into the upper-left part of the grid so it never sits under the chapter dot rail
+  const alertCell = Math.max(0, rankOf[ALERT]) % SQ, wantCell = 2 * side + Math.floor(side * 0.3)
   for (let i = 0; i < N; i++) {
-    const j = i % SQ
+    let j = Math.max(0, rankOf[i]) % SQ
+    if (half) { if (i === ALERT) j = wantCell; else if (j === wantCell) j = alertCell }
     L[4][i * 2] = gx0 + (j % g.c) * g.s
     L[4][i * 2 + 1] = gy0 + Math.floor(j / g.c) * g.s
   }
-  const d0 = nar ? 1.8 : 2.2
-  const SZ = [d0, Math.max(2, s2 * 0.7), d0, nar ? 1.8 : 2.2, Math.max(2, g.s * 0.45)]
-  return { L, A, SQ, SZ, lab: { sx, base, s2, u, gL, gB, gw, gh, pcx, pcy, ring, gx0, gy0, gs: g.s, gW: g.c * g.s, gH: g.r * g.s } }
+  const d0 = nar ? 3 : 2.2 // bigger dots on phones: fewer of them, so each one reads clearly
+  const SZ = [d0, Math.max(2.4, s2 * (nar ? 0.74 : 0.7)), d0, nar ? 2.3 : 2.2, Math.max(2.4, g.s * (nar ? 0.5 : 0.45))]
+  const slowCount = DOTS.filter(d => d.slow && (!half || d.i % 2 === 0)).length
+  return { half, rankOf, counts, slowCount, L, A, SQ, SZ, lab: { sx, base, s2, u, gL, gB, gw, gh, pcx, pcy, ring, gx0, gy0, gs: g.s, gW: g.c * g.s, gH: g.r * g.s } }
 }
