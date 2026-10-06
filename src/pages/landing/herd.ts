@@ -104,7 +104,7 @@ export function computeLayout(W: number, H: number): Layout {
   // Desktop: keep the visual clear of the nav (top), the chapter rail (bottom), the text column (left) and the record card (right).
   const ax = Math.max(W * 0.36, 480), aRight = W - 44 - 250 - 36
   const ay = Math.max(H * 0.17, 112), ah = Math.max(220, Math.min(H * 0.56, H - ay - 120))
-  const A = nar ? { x: 16, y: H * 0.5, w: W - 32, h: H * 0.38 } : { x: ax, y: ay, w: Math.max(260, Math.min(W * 0.37, aRight - ax)), h: ah }
+  const A = nar ? { x: 16, y: H * 0.5, w: W - 32 - 22, h: Math.max(160, H - 44 - H * 0.5) } : { x: ax, y: ay, w: Math.max(260, Math.min(W * 0.37, aRight - ax)), h: ah }
   const L = Array.from({ length: 5 }, () => new Float32Array(N * 2))
   const cx = A.x + A.w * 0.55, cy = A.y + A.h * 0.5
   DOTS.forEach((d, i) => {

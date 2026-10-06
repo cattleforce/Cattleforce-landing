@@ -506,7 +506,7 @@ function Demo() {
 
   return (
     <section id="demo" data-sec className="cf2-demo">
-      <div data-bg="1" aria-hidden="true" className="cf2-demo-bg"><RippleLayer rgb="159,230,204" maxA={0.3} /></div>
+      <div data-bg="1" aria-hidden="true" className="cf2-demo-bg"><RippleLayer rgb="159,230,204" maxA={0.1} /></div>
       <div className="cf2-wrap cf2-demo-grid">
         <div className="cf2-demo-l" data-rv>
           <h2 className="cf2-demo-h" aria-label="Run the whole farm.">

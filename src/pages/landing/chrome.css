@@ -133,3 +133,38 @@ a:focus-visible, button:focus-visible { outline: 2px solid #68c6a4; outline-offs
 
 /* hero copy sits 15% of the screen height lower */
 .cf2i-content { transform: translateY(15vh); transform: translateY(15dvh); }
+
+/* ───────── Phones & small tablets ───────── */
+@media (max-width: 760px) {
+  /* hero: normal flow (no downward shift), sized to the real visible screen, grows rather than clipping */
+  .cf2i { min-height: 100vh; min-height: 100svh; align-items: center; padding: 92px 18px 28px; }
+  .cf2i-content { transform: none !important; max-width: 100%; }
+  .cf2i-h1 { font-size: clamp(32px, 9.6vw, 44px); line-height: 1.02; }
+  .cf2i-sub { margin-top: 12px !important; font-size: 15px; line-height: 1.5; }
+  .cf2i-sub br { display: none; }
+  .cf2i .cf2i-row { margin-top: 20px; gap: 10px; width: 100%; flex-direction: column; align-items: stretch; }
+  .cf2i-primary, .cf2i-secondary { min-width: 0; width: 100%; height: 50px; font-size: 15px; }
+  .cf2i-trust { margin-top: 28px; }
+  .cf2i-trust-label { font-size: 9px; letter-spacing: .1em; line-height: 1.5; }
+  .cf2i-logos { margin-top: 10px; font-size: 10px; letter-spacing: .06em; gap: 8px 0; }
+  .cf2i-logos span { padding: 0 9px; }
+  .cf2i::after { height: 110px; }
+
+  /* story: smaller type; chapter navigation becomes a slim vertical dot rail on the right edge (tap a dot to jump) */
+  .cf2s-ch h2, .cf2s-c0 h1 { font-size: clamp(30px, 8.6vw, 38px); }
+  .cf2s-ch p { font-size: 14px; line-height: 1.5; }
+  .cf2s-label { font-size: 12px; gap: 8px; }
+  .cf2s-btn { width: 180px; height: 44px; font-size: 15px; }
+  .cf2s-ch { gap: 12px; }
+  .cf2s-text { width: calc(100% - 60px) !important; }
+  .cf2s-rail { left: auto; right: 4px; top: 50%; bottom: auto; transform: translateY(-50%); max-width: none; width: auto; flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .cf2s-rail [data-rail-ind] { display: none; }
+  .cf2s-rail button { width: 28px; height: 30px; padding: 0; gap: 0; border-radius: 0; justify-content: center; }
+  .cf2s-rail button > span { display: none; }
+  .cf2s-rail button::after { content: ''; display: block; width: 6px; height: 6px; border-radius: 9999px; background: rgba(243,242,242,.38); transition: height .3s cubic-bezier(.2,.8,.2,1), background .3s ease, box-shadow .3s ease; }
+  .cf2s-rail button[aria-current="step"]::after { height: 22px; background: #68c6a4; box-shadow: 0 0 10px rgba(104,198,164,.55); }
+}
+
+/* mobile menu: everything outside the open menu is blurred and tinted black */
+.cf2n-scrim { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,.62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.cf2n-scrim.on { opacity: 1; pointer-events: auto; }
