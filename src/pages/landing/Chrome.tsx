@@ -8,8 +8,8 @@ import { setLang, tx, useLang } from '../../i18n'
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'https://app.cattleforce.in'
 const NAV = [['Product', '#product'], ['Features', '#features'], ['Testimonials', '#field'], ['Questions', '#faq']]
 
-/** EN | ES switch used in the navbar (desktop bar and phone bar). */
-function LangToggle() {
+/** EN | ES switch, shown in the footer. */
+export function LangToggle() {
   const lang = useLang()
   return (
     <div className="cf2n-lang" role="group" aria-label={tx('Language')}>
@@ -147,7 +147,6 @@ export function Navbar() {
             ))}
           </div>
           <div className="cf2n-actions">
-            <LangToggle />
             <a href={`${APP_URL}/login?fresh=1`} className="cf2n-login" style={{ color: light ? '#0f0e0d' : '#ffffff' }}>{tx('Login')}</a>
             <a href="#demo" className="cf2n-cta" style={{ background: light ? '#0f0e0d' : '#ffffff', color: light ? '#ffffff' : '#000000' }}>{tx('Contact Us')}</a>
           </div>
@@ -159,7 +158,6 @@ export function Navbar() {
           <div className="cf2n-mrow">
             {logo(31.5)}
             <div className="cf2n-mright">
-            <LangToggle />
             <button className="cf2n-burger" aria-label={tx(mo ? 'Close menu' : 'Open menu')} aria-expanded={mo} onClick={() => setOpen(v => !v)} style={{ color: light ? '#0f0e0d' : '#ffffff' }}>
               {mo
                 ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18" /><path d="M6 6l12 12" /></svg>
@@ -185,6 +183,8 @@ export function Navbar() {
 /* ── White intro with the two CTAs ──────────────────────── */
 
 const mag = (e: React.MouseEvent<HTMLElement>) => {
+  // touch screens fire emulated mouse events that would leave the button nudged off-centre: the magnetic pull is for real mice only
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return
   const el = e.currentTarget, b = el.getBoundingClientRect()
   el.style.transform = `translate(${((e.clientX - b.left - b.width / 2) * 0.22).toFixed(1)}px, ${((e.clientY - b.top - b.height / 2) * 0.3).toFixed(1)}px)`
 }

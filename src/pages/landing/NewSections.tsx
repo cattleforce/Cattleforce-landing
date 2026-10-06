@@ -5,7 +5,7 @@ import appAnimals from '../../assets/new/app-animals.png'
 import appPedigree from '../../assets/new/app-pedigree.png'
 import logoWhite from '../../assets/new/logo-lockup-white.png'
 import FeatureCard from './feature-card/FeatureCard'
-import { GridBackdrop, RippleLayer } from './Chrome'
+import { GridBackdrop, LangToggle, RippleLayer } from './Chrome'
 import { MAN_ES, MAN_ITAL_ES } from '../../i18n/es'
 import { tx, useLang } from '../../i18n'
 import './newsections.css'
@@ -561,6 +561,7 @@ function Footer() {
             <Link to="/privacy-policy">{tx('Privacy Policy')}</Link>
             <Link to="/terms">{tx('Terms & Conditions')}</Link>
             <span>© {new Date().getFullYear()} Cattle Force</span>
+            <LangToggle />
           </div>
         </div>
       </div>
