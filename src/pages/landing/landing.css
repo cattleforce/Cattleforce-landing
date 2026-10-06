@@ -304,14 +304,9 @@ body:has(.landing-page) {
 }
 
 .lp-nav-login {
-  padding: 9px 18px;
+  padding: 9px 24px;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--lp-text-muted);
-  border-radius: 50px;
-  transition: color 0.2s, background 0.2s;
 }
-.lp-nav-login:hover { color: var(--lp-text); background: var(--lp-surface); }
 
 .lp-nav-cta {
   padding: 9px 20px;
@@ -409,7 +404,7 @@ body:has(.landing-page) {
   left: 0;
   right: 0;
   height: 22%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 70%, #060908 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 70%, #0f0e0d 100%);
   pointer-events: none;
   z-index: 1;
 }
