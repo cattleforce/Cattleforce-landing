@@ -184,7 +184,7 @@ export function Intro() {
         <div className="cf2i-trust">
           <p className="cf2i-trust-label">Trusted by high-volume cattle operations across the Americas, Europe, and Asia</p>
           <div className="cf2i-logos">
-            {[['◆', 'Alta Terra'], ['⊕', 'Pampa Group'], ['✸', 'Herdenhaus'], ['◎', 'Lakewood Farms'], ['✦', 'Rancho Sol']].map(([icon, name]) => (
+            {[['◆', 'Alta Terra'], ['⊕', 'Pampa Group'], ['✸', 'Hacienda la Esmeralda'], ['◎', 'Lakewood Farms']].map(([icon, name]) => (
               <span key={name}><i aria-hidden="true">{icon}</i>{name}</span>
             ))}
           </div>

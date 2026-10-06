@@ -327,8 +327,7 @@ export default function Story() {
 
         <div className="cf2s-text" style={{ top: narrow ? '72px' : '0px', height: narrow ? '44vh' : '100vh', width: narrow ? 'calc(100% - 32px)' : 'min(440px, 31vw)' }}>
           <div className="cf2s-c0" style={{ width: narrow ? '100%' : 'min(760px, 52vw)', ...c0, opacity: (Number(c0.opacity) * inO).toFixed(3) }}>
-            <h1>The operating system for<br /><em>modern cattle farms.</em></h1>
-            <p>A complete cattle management system built to track every animal,<br />every event, and every outcome.</p>
+            <h1>Here&apos;s how we make a<br /><em>difference</em></h1>
           </div>
 
           <div className="cf2s-ch" style={ch(1)}>
