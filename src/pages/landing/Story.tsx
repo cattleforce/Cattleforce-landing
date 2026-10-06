@@ -454,6 +454,8 @@ export default function Story() {
     const onTouchMove = (e: TouchEvent) => {
       // a sideways swipe (changing story slide on phones) must never be mistaken for a downward scroll
       if (Math.abs(e.touches[0].clientX - x0) > Math.abs(e.touches[0].clientY - y0)) return
+      // phones: leaving the story is plain native scrolling (with CSS snap), no scripted jumps that could fight the finger
+      if (innerWidth < 820) return
       if (inManifesto() && y0 - e.touches[0].clientY > 0) {
         // swiping down past the typed text: land exactly on the product section, then scrolling is normal again
         e.preventDefault()
@@ -544,9 +546,9 @@ export default function Story() {
       const el = secRef.current, man = document.getElementById('manifesto')
       let on = false
       if (el && innerWidth < 820 && !navigating()) {
-        const top = el.getBoundingClientRect().top + scrollY, manTop = man ? man.getBoundingClientRect().top + scrollY : top + el.offsetHeight
+        const manTop = man ? man.getBoundingClientRect().top + scrollY : el.getBoundingClientRect().top + scrollY + el.offsetHeight
         // snapping is live from the hero down to the story, and between the story and the typed text, so the story always lands exactly in frame
-        on = scrollY < top - 2 || (scrollY > top + 2 && scrollY < manTop - 2)
+        on = scrollY < manTop - 2 // one continuous snap zone (hero > story > typed text): the class never flips mid-flick, which is what made it judder
       }
       root.classList.toggle('cf-snap', on)
     }
