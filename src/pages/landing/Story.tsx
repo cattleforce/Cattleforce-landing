@@ -321,16 +321,16 @@ export default function Story() {
     cancelAnimationFrame(step.current.raf)
     const from = scrollY, dist = Math.abs(to - from)
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const dur = reduce ? 1 : fast ? Math.max(420, Math.min(760, (dist / innerHeight) * 380)) : soft ? Math.max(450, Math.min(950, (dist / innerHeight) * 800)) : Math.max(650, Math.min(1100, (dist / innerHeight) * 850))
+    const dur = reduce ? 1 : fast ? Math.max(300, Math.min(520, (dist / innerHeight) * 280)) : soft ? Math.max(300, Math.min(600, (dist / innerHeight) * 500)) : Math.max(380, Math.min(650, (dist / innerHeight) * 520))
     const t0 = performance.now()
     step.current.busy = true
     // touch screens: freeze native scrolling (and any fling momentum) while the step animates and holds, so it can't carry past the target
     if (matchMedia('(pointer: coarse)').matches) {
       document.documentElement.style.overflow = 'hidden'
       clearTimeout(step.current.unlock)
-      step.current.unlock = window.setTimeout(() => { document.documentElement.style.overflow = '' }, dur + (fast ? 200 : soft ? 150 : 650))
+      step.current.unlock = window.setTimeout(() => { document.documentElement.style.overflow = '' }, dur)
     }
-    step.current.lockUntil = t0 + dur + (fast ? 200 : soft ? 150 : 650) // short hold after arriving so what is on screen can be seen before the next move
+    step.current.lockUntil = t0 + dur // no hold after arriving: the next scroll can move on straight away
     const ease = soft ? (t: number) => -(Math.cos(Math.PI * t) - 1) / 2 : (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
     const tick = (now: number) => {
       const k = Math.min(1, (now - t0) / dur)
@@ -392,7 +392,7 @@ export default function Story() {
       if (!wasPinned) { wasPinned = true; rest = current() }
       if (step.current.busy) return
       clearTimeout(idle)
-      idle = window.setTimeout(settle, 200)
+      idle = window.setTimeout(settle, 90)
     }
 
     // touch: one swipe = one chapter
@@ -467,8 +467,18 @@ export default function Story() {
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
+    // the user is never held: a wheel turn or a new touch during a step takes over straight away
+    const interrupt = () => {
+      if (!step.current.busy && !locked()) return
+      cancelAnimationFrame(step.current.raf); clearTimeout(step.current.unlock)
+      step.current.busy = false; step.current.lockUntil = 0
+      document.documentElement.style.overflow = ''
+    }
+    window.addEventListener('wheel', interrupt, { passive: true })
+    window.addEventListener('touchstart', interrupt, { passive: true })
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
+      window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt)
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
