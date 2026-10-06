@@ -513,7 +513,7 @@ export default function Story() {
     step.current.setHold = (y: number) => { holdY = y; rest = current(); armHold() }
     const onEntry = () => {
       const y = scrollY, c0 = chapterY(0)
-      if (navigating()) { holdY = null; prevY = y; return }
+      if (navigating() || innerWidth < 820) { holdY = null; prevY = y; return } // phones use native scroll-snap below instead (clamping against momentum made it judder)
       // arriving from the hero: land on the first chapter, never beyond it
       if (holdY === null && !step.current.busy && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
       prevY = y
@@ -534,6 +534,22 @@ export default function Story() {
     window.addEventListener('touchcancel', onTouchUp, { passive: true })
     window.addEventListener('touchmove', onInput, { passive: true })
 
+    // phones: while the hero is above the story, native scroll-snap (mandatory, stop: always) catches even a hard flick at the story's top edge,
+    // smoothly and without fighting the momentum. It is switched off once we have arrived, so scrolling on from the story is free.
+    const root = document.documentElement
+    let snapRaf = 0
+    const updateSnap = () => {
+      snapRaf = 0
+      const el = secRef.current
+      const on = !!el && innerWidth < 820 && !navigating() && scrollY < el.getBoundingClientRect().top + scrollY - 2
+      root.classList.toggle('cf-snap', on)
+    }
+    const onSnapScroll = () => { if (!snapRaf) snapRaf = requestAnimationFrame(updateSnap) }
+    window.addEventListener('scroll', onSnapScroll, { passive: true })
+    window.addEventListener('resize', onSnapScroll)
+    window.addEventListener('cf:nav', onSnapScroll)
+    updateSnap()
+
     // the user is never held: a fresh wheel gesture or a new touch during a step takes over straight away
     let lastWheel = 0
     const interrupt = (e: Event) => {
@@ -548,6 +564,7 @@ export default function Story() {
     window.addEventListener('touchstart', interrupt, { passive: true })
     window.addEventListener('scroll', onScrollState, { passive: true })
     return () => {
+      window.removeEventListener('scroll', onSnapScroll); window.removeEventListener('resize', onSnapScroll); window.removeEventListener('cf:nav', onSnapScroll); root.classList.remove('cf-snap'); cancelAnimationFrame(snapRaf)
       window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt); window.removeEventListener('cf:nav', interrupt)
       window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('wheel', markIn); window.removeEventListener('touchstart', onTouchDown); window.removeEventListener('touchend', onTouchUp); window.removeEventListener('touchcancel', onTouchUp); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
