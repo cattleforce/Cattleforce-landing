@@ -450,5 +450,6 @@
 }
 
 /* feature index on black: light type, and the card gets a soft light glow / rim instead of black shadows (which would vanish) */
-.cf2-feat-black { background: #0f0e0d; }
+/* transparent on purpose: the page background is black, and the fixed green glow / ripple layers behind the sections show through, as they do over the typed text */
+.cf2-feat-black { background: transparent; }
 .cf2-feat-black .cf2-h2 { color: #f3f2f2; }
