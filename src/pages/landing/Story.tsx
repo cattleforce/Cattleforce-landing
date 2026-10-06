@@ -117,7 +117,8 @@ export default function Story() {
       const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
         // swiping on past the last chapter carries on to the next section
-        if (dx < 0 && slideC === 4) { document.getElementById('manifesto')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
+        // exact top edge: scrollIntoView would add the 72px anchor offset and leave the story's bottom card showing
+        if (dx < 0 && slideC === 4) { const man = document.getElementById('manifesto'); if (man) window.scrollTo({ top: man.getBoundingClientRect().top + scrollY, behavior: 'smooth' }); return }
         gotoSlide(slideC + (dx < 0 ? 1 : -1))
       }
     }

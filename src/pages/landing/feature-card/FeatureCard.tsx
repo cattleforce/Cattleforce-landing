@@ -45,9 +45,13 @@ export function FeatureCard({ className }: { className?: string }) {
   const elapsed = React.useRef(0);
 
   React.useEffect(() => {
-    const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; }, { threshold: 0.2 });
+    const io = new IntersectionObserver(([e]) => {
+      // scrolling the card into view (re)plays the entrance animation, so it can never be caught sitting at its empty first frame
+      if (e.isIntersecting && !visible.current) { tabStartRef.current = performance.now(); setTabStart(tabStartRef.current); }
+      visible.current = e.isIntersecting;
+    }, { threshold: 0.2 });
     if (ref.current) io.observe(ref.current);
-    let raf = 0, last = performance.now();
+    let raf = 0, last = performance.now(), finalSet = false;
     const tick = (t: number) => {
       if (visible.current && !hover.current) elapsed.current += t - last;
       last = t;
@@ -58,7 +62,10 @@ export function FeatureCard({ className }: { className?: string }) {
       }
       // re-render per frame only while the title / row entrance animations are running and the card is on screen
       // (re-rendering the whole card at 60fps all the time made scrolling past it stutter on phones)
-      if (visible.current && t - tabStartRef.current < 1400) setNow(t);
+      if (visible.current) {
+        if (t - tabStartRef.current < 1400) { setNow(t); finalSet = false; }
+        else if (!finalSet) { setNow(t); finalSet = true; } // one last update so the animation always ends on its final frame
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
