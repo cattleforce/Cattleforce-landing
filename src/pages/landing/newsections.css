@@ -341,3 +341,37 @@
   .cf2-tdots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 9999px; background: rgba(243,242,242,.3); cursor: pointer; transition: width .25s ease, background .25s ease; }
   .cf2-tdots button.on { width: 22px; background: #68c6a4; }
 }
+
+/* testimonials intro line: quieter, so it doesn't compete with the heading */
+#field .cf2-field-sub { color: rgba(243,242,242,.55); }
+
+/* rounded edges: contact card, its fields and the submit button */
+.cf2-demo-card { border-radius: 8px; }
+.cf2-demo-card input { border-radius: 8px; }
+.cf2-size > div { border-radius: 8px; overflow: hidden; }
+.cf2-submit { border-radius: 8px; }
+.cf2-size button { border-radius: 7px; }
+
+/* demo: text and contact card sit closer together; the CTA is only as wide as its label + arrow */
+@media (min-width: 900px) {
+  #demo .cf2-demo-grid { grid-template-columns: minmax(0, 540px) minmax(0, 500px); justify-content: center; column-gap: clamp(40px, 5vw, 80px); }
+  #demo .cf2-demo-card { justify-self: start; }
+}
+#demo .cf2-submit { display: inline-flex; width: auto; justify-self: start; gap: 28px; padding: 0 20px; }
+#demo .cf2-submit svg { margin-left: 0; }
+
+/* herd size selector: mint-tinted selection so it reads differently from the light "Book a demo" button; the button is centred */
+#demo .cf2-size > div { border-color: rgba(243,242,242,.28); }
+#demo .cf2-size button { color: rgba(243,242,242,.85); }
+#demo .cf2-size button.on { background: rgba(104,198,164,.16); color: #9fe6cc; box-shadow: inset 0 0 0 1px rgba(104,198,164,.7); }
+#demo .cf2-submit { justify-self: center; }
+
+/* demo form: "Book a demo" spans the full card width, label centred, no arrow */
+#demo .cf2-submit { display: flex; width: 100%; justify-self: stretch; justify-content: center; gap: 0; padding: 0 20px; }
+#demo .cf2-submit svg { display: none; }
+
+/* demo form: message box (replaces the herd-size selector) */
+.cf2-demo-card textarea { display: block; width: 100%; min-height: 104px; padding: 14px 18px; border: 1px solid rgba(243,242,242,.45); border-radius: 8px; background: transparent; color: #f3f2f2; font-family: var(--font-body); font-size: 16px; line-height: 1.45; letter-spacing: 0; text-transform: none; font-weight: 400; resize: vertical; }
+.cf2-demo-card textarea::placeholder { color: rgba(243,242,242,.6); }
+.cf2-demo-card input:focus, .cf2-demo-card textarea:focus { outline: 2px solid #68c6a4; outline-offset: 2px; }
+#demo .cf2-demo-card textarea { min-height: clamp(84px, 14vh, 112px); font-size: clamp(14px, 2.2vh, 16px); padding: 12px 14px; }

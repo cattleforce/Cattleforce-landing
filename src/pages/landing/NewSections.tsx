@@ -67,7 +67,6 @@ const FAQS = [
   { q: 'How do we get started?', a: 'Book a demo. We walk through your farm’s current setup and show how it maps onto Cattle Force.' },
 ]
 
-const SIZES = ['< 100', '100–500', '500+']
 const WORDS = ['herd', 'dairy', 'finance', 'planning', 'farm']
 
 /* ── Small pieces ───────────────────────────────────────── */
@@ -334,6 +333,21 @@ function Field() {
     const w = (el.firstElementChild as HTMLElement).offsetWidth + 12
     setCi(Math.max(0, Math.min(TESTI.length - 1, Math.round(el.scrollLeft / w))))
   }
+  // phones: with no swipe for a few seconds, the next card slides in by itself (no timer or loader shown); it loops.
+  // A finger on the cards pauses it, and every swipe restarts the countdown.
+  const touching = useRef(false)
+  const [bump, setBump] = useState(0)
+  useEffect(() => {
+    if (!vis || !matchMedia('(max-width: 760px)').matches) return
+    const t = window.setTimeout(() => {
+      if (touching.current) return
+      const el = rail.current
+      if (!el || !el.firstElementChild) return
+      const next = (ci + 1) % TESTI.length
+      el.scrollTo({ left: next * ((el.firstElementChild as HTMLElement).offsetWidth + 12), behavior: 'smooth' })
+    }, 5000)
+    return () => clearTimeout(t)
+  }, [ci, vis, bump])
   const toCard = (n: number) => {
     const el = rail.current
     if (!el || !el.firstElementChild) return
@@ -356,7 +370,7 @@ function Field() {
           <h2 className="cf2-h2 cf2-h2--field">Built for serious <em>cattle operations.</em></h2>
           <p className="cf2-field-sub">Used by ranchers managing hundreds to thousands of animals, every day.</p>
         </div>
-        <div className="cf2-tcards" ref={rail} onScroll={onRail}>
+        <div className="cf2-tcards" ref={rail} onScroll={onRail} onTouchStart={() => { touching.current = true }} onTouchEnd={() => { touching.current = false; setBump(b => b + 1) }} onTouchCancel={() => { touching.current = false; setBump(b => b + 1) }}>
           {TESTI.map(t => (
             <article key={t.name} className="cf2-tcard">
               <img src={t.src} alt={t.name} draggable={false} />
@@ -500,7 +514,7 @@ type Status = 'idle' | 'loading' | 'success' | 'error' | 'activate'
 function Demo() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [size, setSize] = useState('100–500')
+  const [message, setMessage] = useState('')
   const [err, setErr] = useState('')
   const [bad, setBad] = useState({ name: false, email: false })
   const [status, setStatus] = useState<Status>('idle')
@@ -523,7 +537,7 @@ function Demo() {
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
-          herd_size: size,
+          message: message.trim() || 'N/A',
           subject: 'Book a demo',
           _subject: '[Cattle Force] Book a demo',
           _captcha: 'false',
@@ -542,7 +556,7 @@ function Demo() {
     } catch {
       setStatus('error')
     }
-  }, [name, email, size])
+  }, [name, email, message])
 
   return (
     <section id="demo" data-sec className="cf2-demo">
@@ -570,14 +584,9 @@ function Demo() {
               <label>Email
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@farm.com" autoComplete="email" style={{ borderColor: bad.email ? '#ff7a5c' : undefined }} />
               </label>
-              <div className="cf2-size">
-                <span>Herd size</span>
-                <div role="radiogroup" aria-label="Herd size">
-                  {SIZES.map(z => (
-                    <button key={z} type="button" role="radio" aria-checked={size === z} className={size === z ? 'on' : ''} onClick={() => setSize(z)}>{z}</button>
-                  ))}
-                </div>
-              </div>
+              <label>Message
+                <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Tell us about your herd and what you need" rows={4} />
+              </label>
               <button type="submit" className="cf2-submit" disabled={status === 'loading'}>
                 <span>{status === 'loading' ? 'Sending…' : status === 'activate' ? 'Try again' : 'Book a demo'}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>

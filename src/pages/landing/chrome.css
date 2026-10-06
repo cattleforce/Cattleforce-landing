@@ -184,3 +184,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid #68c6a4; outline-offs
   .cf2s-mini-row span { font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
   .cf2s-mini p { margin: 4px 0 0; font-size: 11.5px; line-height: 1.35; color: rgba(243,242,242,.7); }
 }
+
+/* rounded edges on all CTAs (same 8px radius as the buttons in the phone menu) */
+.cf2i-primary, .cf2i-secondary, .cf2s-btn { border-radius: 8px; }
