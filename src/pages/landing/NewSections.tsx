@@ -325,6 +325,21 @@ function Field() {
 
   const go = (n: number) => { setI((n + TESTI.length) % TESTI.length); setLocked(true) }
 
+  // phones: the testimonials are a row of cards you swipe through (native scroll-snap); keep the dots in sync
+  const rail = useRef<HTMLDivElement>(null)
+  const [ci, setCi] = useState(0)
+  const onRail = () => {
+    const el = rail.current
+    if (!el || !el.firstElementChild) return
+    const w = (el.firstElementChild as HTMLElement).offsetWidth + 12
+    setCi(Math.max(0, Math.min(TESTI.length - 1, Math.round(el.scrollLeft / w))))
+  }
+  const toCard = (n: number) => {
+    const el = rail.current
+    if (!el || !el.firstElementChild) return
+    el.scrollTo({ left: n * ((el.firstElementChild as HTMLElement).offsetWidth + 12), behavior: 'smooth' })
+  }
+
   // phones: swipe left / right to change testimonial (vertical swipes still scroll the page)
   const swipe = useRef({ x: 0, y: 0 })
   const onSwipeStart = (e: React.TouchEvent) => { swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }
@@ -337,9 +352,27 @@ function Field() {
     <section id="field" data-sec ref={ref} className="cf2-dark cf2-pad" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       <div className="cf2-wrap cf2-stack cf2-stack--tight">
         <div className="cf2-head cf2-head--left" data-rv>
-          <Label dark>From the field</Label>
+          <Label dark>Testimonials</Label>
           <h2 className="cf2-h2 cf2-h2--field">Built for serious <em>cattle operations.</em></h2>
           <p className="cf2-field-sub">Used by ranchers managing hundreds to thousands of animals, every day.</p>
+        </div>
+        <div className="cf2-tcards" ref={rail} onScroll={onRail}>
+          {TESTI.map(t => (
+            <article key={t.name} className="cf2-tcard">
+              <img src={t.src} alt={t.name} draggable={false} />
+              <div className="cf2-tcard-body">
+                <strong>{t.name}</strong>
+                <span>{t.role}, {t.farm}</span>
+                <span className="cf2-place">{t.place}, {t.country}</span>
+                <p>{t.quote}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="cf2-tdots" role="tablist" aria-label="Testimonials">
+          {TESTI.map((t, n) => (
+            <button key={t.name} role="tab" aria-selected={n === ci} aria-label={`Show ${t.name}`} className={n === ci ? 'on' : ''} onClick={() => toCard(n)} />
+          ))}
         </div>
         <div className="cf2-field-grid" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
           <div className="cf2-stackimgs">

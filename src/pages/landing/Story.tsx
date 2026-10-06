@@ -61,7 +61,8 @@ export default function Story() {
     resize()
     DOTS.forEach(d => { d.x = d.sx * W; d.y = d.sy * H; d.vx = 0; d.vy = 0 })
 
-    const onMove = (e: MouseEvent) => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top }
+    const touchOnly = matchMedia('(pointer: coarse), (max-width: 1023px)').matches
+    const onMove = (e: MouseEvent) => { if (touchOnly) return; const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top }
     const onOut = () => { mx = my = -9999 }
 
     const go = () => { t0 = performance.now() / 1000; selT.current = t0 + 2.2; ready = true; push({ ready: true }) }
@@ -104,7 +105,7 @@ export default function Story() {
       const s = p * 4, a = Math.min(3, Math.floor(s)), t = clamp((s - a - 0.15) / 0.7)
       const wk = (k: number) => clamp(1 - Math.abs(s - k) * 2.2)
       const w1 = wk(1), w2 = wk(2), w3 = wk(3), w4 = wk(4)
-      const R = 110, stiff = 0.014 + 0.07 * clamp(s), damp = 0.9 - 0.12 * clamp(s)
+      const stiff = 0.014 + 0.07 * clamp(s), damp = 0.9 - 0.12 * clamp(s)
       ctx.clearRect(0, 0, W, H)
       const mono = '500 10px "Geist Mono", monospace'
 
@@ -147,8 +148,6 @@ export default function Story() {
         const act = clamp((act0 - d.delay * 1.3) / 1.1)
         let ax = (tx - d.x) * stiff * act, ay = (ty - d.y) * stiff * act
         if (act < 1) { ax += Math.sin(n * 0.5 + d.ph) * 0.02; ay += Math.cos(n * 0.4 + d.ph) * 0.02 }
-        const dx = d.x - mx, dy = d.y - my, dd = dx * dx + dy * dy
-        if (dd < R * R && dd > 0.01) { const dist = Math.sqrt(dd), f = (1 - dist / R) * 1.5; ax += (dx / dist) * f; ay += (dy / dist) * f }
         d.vx = (d.vx + ax) * damp; d.vy = (d.vy + ay) * damp; d.x += d.vx; d.y += d.vy
         cur[i * 2] = d.x; cur[i * 2 + 1] = d.y
       }
@@ -287,24 +286,30 @@ export default function Story() {
   }, [heroReady])
 
   // ── stepped scrolling: one scroll / swipe moves exactly one chapter, then the view holds ──
-  const step = useRef({ raf: 0, lockUntil: 0, busy: false })
+  const step = useRef({ raf: 0, lockUntil: 0, busy: false, unlock: 0 })
 
   const chapterY = (c: number) => {
     const el = secRef.current!
     return el.getBoundingClientRect().top + scrollY + (c / 4) * (el.offsetHeight - (stickRef.current?.offsetHeight ?? innerHeight)) + 1
   }
 
-  // animate the page scroll to a chapter. soft = the gentle ease-out used when the page settles after normal scrolling.
-  const goCh = useCallback((c: number, soft = false) => {
+  // animate the page scroll to a scroll position (px). soft = the gentle ease-out used when the page settles after normal scrolling.
+  const goY = useCallback((to: number, soft = false) => {
     const el = secRef.current
     if (!el) return
     cancelAnimationFrame(step.current.raf)
-    const from = scrollY, to = chapterY(c), dist = Math.abs(to - from)
+    const from = scrollY, dist = Math.abs(to - from)
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
     const dur = reduce ? 1 : soft ? Math.max(450, Math.min(950, (dist / innerHeight) * 800)) : Math.max(650, Math.min(1100, (dist / innerHeight) * 850))
     const t0 = performance.now()
     step.current.busy = true
-    step.current.lockUntil = t0 + dur + (soft ? 150 : 650) // short hold after arriving so the chapter can be seen before the next move
+    // touch screens: freeze native scrolling (and any fling momentum) while the step animates and holds, so it can't carry past the target
+    if (matchMedia('(pointer: coarse)').matches) {
+      document.documentElement.style.overflow = 'hidden'
+      clearTimeout(step.current.unlock)
+      step.current.unlock = window.setTimeout(() => { document.documentElement.style.overflow = '' }, dur + (soft ? 150 : 650))
+    }
+    step.current.lockUntil = t0 + dur + (soft ? 150 : 650) // short hold after arriving so what is on screen can be seen before the next move
     const ease = soft ? (t: number) => -(Math.cos(Math.PI * t) - 1) / 2 : (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
     const tick = (now: number) => {
       const k = Math.min(1, (now - t0) / dur)
@@ -314,6 +319,11 @@ export default function Story() {
     }
     step.current.raf = requestAnimationFrame(tick)
   }, [])
+
+  const goCh = useCallback((c: number, soft = false) => {
+    if (!secRef.current) return
+    goY(chapterY(c), soft)
+  }, [goY])
 
   useEffect(() => {
     const stepState = step.current
@@ -367,7 +377,23 @@ export default function Story() {
     // touch: one swipe = one chapter
     let y0 = 0, stepped = false, claim = false
     const onTouchStart = (e: TouchEvent) => { y0 = e.touches[0].clientY; stepped = false; claim = false }
+    // true while the last chapter (or the story's tail) is on screen and the typed text has not been reached yet
+    const beforeManifesto = () => {
+      const st = secRef.current?.getBoundingClientRect(), man = document.getElementById('manifesto')?.getBoundingClientRect()
+      const sh = stickRef.current?.offsetHeight ?? innerHeight
+      return !!st && !!man && st.top <= 1 && st.bottom <= sh + 2 && man.top > 24
+    }
     const onTouchMove = (e: TouchEvent) => {
+      if (beforeManifesto() && y0 - e.touches[0].clientY > 0) {
+        // swiping down out of the story: stop exactly on the typed text instead of flinging past it
+        e.preventDefault()
+        if (!stepped && !locked() && y0 - e.touches[0].clientY >= 22) {
+          stepped = true; claim = true
+          const man = document.getElementById('manifesto')!
+          goY(man.getBoundingClientRect().top + scrollY, false)
+        }
+        return
+      }
       if (!pinned()) { wasPinned = false; return }
       const dy = y0 - e.touches[0].clientY // > 0: finger moved up = scrolling down
       if (!claim) {
@@ -395,8 +421,10 @@ export default function Story() {
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('scroll', onScrollState)
       cancelAnimationFrame(stepState.raf)
+      clearTimeout(stepState.unlock)
+      document.documentElement.style.overflow = ''
     }
-  }, [goCh])
+  }, [goCh, goY])
 
   // expose "go to story" for the intro button
   useEffect(() => {
