@@ -28,12 +28,24 @@ const apply = () => {
 }
 apply()
 
+let swapTimer = 0
 export function setLang(l: Lang) {
   if (l === LANG) return
-  LANG = l
-  try { localStorage.setItem(KEY, l) } catch { /* storage unavailable */ }
-  apply()
-  subs.forEach(f => f())
+  const swap = () => {
+    LANG = l
+    try { localStorage.setItem(KEY, l) } catch { /* storage unavailable */ }
+    apply()
+    subs.forEach(f => f())
+  }
+  const root = document.documentElement
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return swap()
+  // fade the page content out, swap the strings while it is invisible, fade back in (the navbar stays put so the switch itself never flickers)
+  clearTimeout(swapTimer)
+  root.classList.add('cf-lang-out')
+  swapTimer = window.setTimeout(() => {
+    swap()
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('cf-lang-out')))
+  }, 170)
 }
 
 /** Subscribes the calling component to language changes; use `tx` for the strings themselves. */
