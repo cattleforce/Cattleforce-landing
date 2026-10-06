@@ -84,6 +84,13 @@ export function Navbar() {
     return () => { removeEventListener('scroll', onScroll); removeEventListener('resize', onResize) }
   }, [])
 
+  useEffect(() => {
+    if (!(open && !desk)) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open, desk])
+
   const light = false // the intro is now a dark video hero, so the nav always uses its light-on-dark variant
   const mo = open && !desk
   const logo = (h: number) => (
@@ -104,6 +111,8 @@ export function Navbar() {
   }
 
   return (
+    <>
+    <div className={`cf2n-scrim${mo ? ' on' : ''}`} onClick={() => setOpen(false)} aria-hidden="true" />
     <header className="cf2n" style={{ transform: hidden && !open ? 'translateY(-140%)' : 'none', transition: 'transform .45s cubic-bezier(.22,.8,.3,1)' }}>
       {desk ? (
         <div className="cf2n-bar" style={{ ...bar, width: scrolled ? '52%' : '100%' }}>
@@ -123,6 +132,7 @@ export function Navbar() {
           </div>
         </div>
       ) : (
+        <>
         <div className="cf2n-mbar" style={{ ...bar, width: scrolled ? '90%' : '100%', padding: `12px ${scrolled ? '12px' : '0px'}`, borderRadius: scrolled ? '4px' : '2rem' }}>
           <span className={`cf2n-aurora${scrolled ? ' on' : ''}`} aria-hidden="true" />
           <div className="cf2n-mrow">
@@ -141,8 +151,10 @@ export function Navbar() {
             </div>
           </div>
         </div>
+        </>
       )}
     </header>
+    </>
   )
 }
 
@@ -167,10 +179,10 @@ export function Intro() {
       <HeroFrames />
       <div className="cf2i-shade" aria-hidden="true" />
       <div className={`cf2i-tint${tinted ? ' on' : ''}`} aria-hidden="true" />
-      <RippleLayer rgb="104,198,164" maxA={0.38} />
+      <RippleLayer rgb="104,198,164" maxA={0.13} />
       <div className="cf2i-content">
         <h1 className="cf2i-h1">The operating system for<br /><em>modern cattle farms.</em></h1>
-        <p className="cf2i-sub">A complete cattle management system built to track every animal,<br />every event, and every outcome.</p>
+        <p className="cf2i-sub">A complete cattle management system built to track every animal,{' '}<br />every event, and every outcome.</p>
         <div className="cf2i-row">
           <a href="#demo" className="cf2i-primary" onMouseMove={mag} onMouseLeave={magOut}>
             <span>Book a demo</span>
@@ -241,7 +253,7 @@ export function GridBackdrop({ mask, bg }: { mask: string; bg: string }) {
   return (
     <div data-bg="1" aria-hidden="true" className="cf2-bg" style={{ background: bg }}>
       <canvas ref={cvRef} style={{ WebkitMaskImage: m, maskImage: m }} />
-      <RippleLayer rgb="0,81,72" maxA={0.45} />
+      <RippleLayer rgb="0,81,72" maxA={0.15} />
     </div>
   )
 }
@@ -273,6 +285,8 @@ export function Effects() {
     const g = glowRef.current!, cv = dgRef.current!
 
     const onDown = (e: PointerEvent) => {
+      // no click wave on phones and tablets (narrow screens or touch-first devices)
+      if (matchMedia('(max-width: 1024px), (pointer: coarse)').matches) return
       const t = e.target as Element
       if (t.closest?.('input,textarea,select,a,button,[role="button"],[role="tab"],[role="radio"],label')) return
       const fx = !!t.closest?.('#top, header')
@@ -288,7 +302,7 @@ export function Effects() {
       if (cv.width !== Math.round(W * d) || cv.height !== Math.round(H * d)) { cv.width = Math.round(W * d); cv.height = Math.round(H * d) }
       const ctx = cv.getContext('2d')!
       ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, W, H); dirty = true
-      paintRipples(ctx, W, H, 0, 0, n, '104,198,164', 0.38)
+      paintRipples(ctx, W, H, 0, 0, n, '104,198,164', 0.13)
     }
 
     const glow = (n: number) => {
