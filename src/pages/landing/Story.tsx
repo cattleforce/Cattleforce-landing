@@ -507,7 +507,7 @@ export default function Story() {
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     // One scroll never carries past the section it was heading for: once a step (or the arrival from the hero) lands, the page is pinned there
     // until the scroll input (wheel / finger, including its momentum) has stopped for a moment. The next fresh scroll then moves one step on.
-    let holdY: number | null = null, holdTimer = 0, prevY = scrollY
+    let holdY: number | null = null, holdTimer = 0, prevY = scrollY, lastTry = 0
     const coarse = matchMedia('(pointer: coarse)').matches
     const armHold = () => { clearTimeout(holdTimer); holdTimer = window.setTimeout(() => { holdY = null }, coarse ? 380 : 170) }
     step.current.setHold = (y: number) => { holdY = y; rest = current(); armHold() }
@@ -517,10 +517,14 @@ export default function Story() {
       // arriving from the hero: land on the first chapter, never beyond it
       if (holdY === null && !step.current.busy && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
       prevY = y
-      if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) window.scrollTo({ top: holdY, behavior: 'instant' as ScrollBehavior })
+      if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) {
+        // momentum is still trying to carry on: keep holding (and keep the hold alive) until it has died out
+        lastTry = performance.now(); armHold()
+        window.scrollTo({ top: holdY, behavior: 'instant' as ScrollBehavior })
+      }
     }
     const onInput = () => { if (holdY !== null) armHold() }
-    const onTouchDown = () => { touching = true; markIn() }
+    const onTouchDown = () => { touching = true; markIn(); if (holdY !== null && performance.now() - lastTry > 150) holdY = null } // a fresh touch after the momentum has settled is a new gesture
     const onTouchUp = () => { touching = false; markIn() }
     window.addEventListener('scroll', onEntry, { passive: true })
     window.addEventListener('wheel', onInput, { passive: true })
@@ -686,7 +690,7 @@ export default function Story() {
         </div>
 
         {narrow && (
-          <div className="cf2s-swipe" aria-hidden="true" style={{ opacity: (clamp(1 - s * 3) * inO).toFixed(3) }}>
+          <div className="cf2s-swipe" aria-hidden="true" style={{ opacity: inO }}>
             <span>{tx('Swipe')}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
           </div>
