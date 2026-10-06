@@ -16,9 +16,9 @@ const MAN_WORDS = MAN.split(' ').map((w, i, arr) => ({ w, pos: arr.slice(0, i).r
 const MAN_ITAL = new Set(['runs', 'as', 'one.'])
 
 const SCREENS = [
-  { src: appDashboard, url: 'app.cattleforce.in/dashboard', title: 'Dashboard' },
-  { src: appAnimals, url: 'app.cattleforce.in/animals', title: 'Animals' },
-  { src: appPedigree, url: 'app.cattleforce.in/animals/offspring/1234', title: 'Pedigree' },
+  { src: appDashboard, title: 'Dashboard' },
+  { src: appAnimals, title: 'Animals' },
+  { src: appPedigree, title: 'Pedigree' },
 ]
 
 const CMP: Record<string, string[]> = {
@@ -224,7 +224,6 @@ function Product() {
         <div className="cf2-head" data-rv>
           <Label>The product</Label>
           <h2 className="cf2-h2 cf2-h2--xl">Built around the <em>day's work.</em></h2>
-          <p className="cf2-mono-cap">Real screens from the Cattle Force app.</p>
         </div>
 
         <div ref={ref} className="cf2-frame-wrap">
@@ -233,7 +232,7 @@ function Product() {
             <span className="cf2-br cf2-br--bl" /><span className="cf2-br cf2-br--bb" />
             <div className="cf2-frame-bar">
               <div className="cf2-frame-dots"><i /><i /><i /></div>
-              <div className="cf2-frame-url">[ {SCREENS[i].url} ]</div>
+              <div className="cf2-frame-url">Real screens from the Cattle Force app.</div>
             </div>
             <div className="cf2-frame-pad">
               <div className="cf2-screens">
@@ -326,6 +325,14 @@ function Field() {
 
   const go = (n: number) => { setI((n + TESTI.length) % TESTI.length); setLocked(true) }
 
+  // phones: swipe left / right to change testimonial (vertical swipes still scroll the page)
+  const swipe = useRef({ x: 0, y: 0 })
+  const onSwipeStart = (e: React.TouchEvent) => { swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }
+  const onSwipeEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - swipe.current.x, dy = e.changedTouches[0].clientY - swipe.current.y
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? i + 1 : i - 1)
+  }
+
   return (
     <section id="field" data-sec ref={ref} className="cf2-dark cf2-pad" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       <div className="cf2-wrap cf2-stack cf2-stack--tight">
@@ -334,7 +341,7 @@ function Field() {
           <h2 className="cf2-h2 cf2-h2--field">Built for serious <em>cattle operations.</em></h2>
           <p className="cf2-field-sub">Used by ranchers managing hundreds to thousands of animals, every day.</p>
         </div>
-        <div className="cf2-field-grid">
+        <div className="cf2-field-grid" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
           <div className="cf2-stackimgs">
             {TESTI.map((t, k) => {
               const on = k === i
