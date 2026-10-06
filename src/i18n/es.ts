@@ -78,7 +78,7 @@ export const ES: Record<string, string> = {
   'Contact Us: ': 'Contáctanos: ', 'Privacy Policy': 'Política de privacidad', 'Terms & Conditions': 'Términos y condiciones',
   // page meta
   'Cattle Force — The Operating System for Modern Cattle Farms': 'Cattle Force — El sistema operativo para granjas ganaderas modernas',
-  'Capability': 'Capacidad', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
+  'Capability': 'Capacidad', 'Cattle Force includes all': 'Cattle Force incluye todo', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
   'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para granjas ganaderas modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
 }
 

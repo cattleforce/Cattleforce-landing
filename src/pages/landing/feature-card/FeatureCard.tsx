@@ -34,7 +34,6 @@ function useMobile() {
 export function FeatureCard({ className }: { className?: string }) {
   useLang();
   const mobile = useMobile();
-  const chipsRef = React.useRef<HTMLDivElement>(null);
   const [tab, setTab] = React.useState(0);
   const [tabStart, setTabStart] = React.useState(() => performance.now());
   const [now, setNow] = React.useState(() => performance.now());
@@ -62,11 +61,29 @@ export function FeatureCard({ className }: { className?: string }) {
     return () => { cancelAnimationFrame(raf); io.disconnect(); };
   }, []);
 
+  // mobile carousel: swiping updates the active area, auto-advance / dot taps scroll to it
+  const slidesRef = React.useRef<HTMLDivElement>(null);
+  const programmatic = React.useRef(0);
+  const [slideH, setSlideH] = React.useState<number | undefined>(undefined);
   React.useEffect(() => {
-    const box = chipsRef.current;
-    const el = box?.children[tab] as HTMLElement | undefined;
-    if (box && el) box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: "smooth" });
+    const box = slidesRef.current;
+    if (!mobile || !box) return;
+    const slide = box.children[tab] as HTMLElement | undefined;
+    if (slide) setSlideH(slide.offsetHeight);
+    if (Math.round(box.scrollLeft / box.clientWidth) !== tab) {
+      programmatic.current = performance.now() + 700; // ignore the scroll events this smooth scroll causes
+      box.scrollTo({ left: tab * box.clientWidth, behavior: "smooth" });
+    }
   }, [tab, mobile]);
+  const onSlides = () => {
+    const box = slidesRef.current;
+    if (!box || performance.now() < programmatic.current) return;
+    const i = Math.round(box.scrollLeft / box.clientWidth);
+    if (i !== tab && i >= 0 && i < FEATURES.length) { elapsed.current = 0; setTab(i); setTabStart(performance.now()); }
+  };
+  const touchTimer = React.useRef(0);
+  const onTouchStart = () => { window.clearTimeout(touchTimer.current); hover.current = true; };
+  const onTouchEnd = () => { touchTimer.current = window.setTimeout(() => { hover.current = false; }, 3000); };
 
   const go = (i: number) => { elapsed.current = 0; setTab(i); setTabStart(performance.now()); };
   const since = (now - tabStart) / 1000;
@@ -100,55 +117,46 @@ export function FeatureCard({ className }: { className?: string }) {
         </div>
 
         {mobile ? (
-          <div style={{ padding: "14px 0 18px" }}>
-            {/* Area chips: one swipeable row */}
-            <div ref={chipsRef} role="tablist" aria-label={tx("Feature areas")} className="cf-chips"
-              style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 14px 12px", scrollbarWidth: "none" }}>
-              {FEATURES.map((f, i) => {
-                const on = i === tab;
-                return (
-                  <button key={f.area} role="tab" aria-selected={on} onClick={() => go(i)} className="cf-tab"
-                    style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", border: 0, borderRadius: 999,
-                      background: on ? INK : "#f1f4f3", color: on ? "#fff" : INK, fontFamily: "inherit", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer" }}>
-                    {tx(f.area)}
-                    <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>{f.rows.length}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* One compact table: column headings once, status icons per row, a legend underneath.
-                Panels share one grid cell so the height never jumps. */}
-            <div style={{ margin: "0 14px", display: "grid", border: "1px solid #e6ebe9", borderRadius: 8, overflow: "hidden", background: "#fff",
-              boxShadow: "0 2px 4px rgba(11,10,9,0.06), 0 10px 22px -10px rgba(11,10,9,0.22)" }}>
+          <div style={{ padding: "16px 0 18px" }}>
+            {/* Swipeable cards, one per area */}
+            <div ref={slidesRef} onScroll={onSlides} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="cf-chips"
+              style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none",
+                height: slideH, transition: "height .35s ease" }}>
               {FEATURES.map((f, p) => {
                 const on = p === tab;
                 return (
-                  <div key={f.area} role="tabpanel" aria-hidden={!on}
-                    style={{ gridArea: "1 / 1", minWidth: 0, visibility: on ? "visible" : "hidden", opacity: on ? 1 : 0, transform: on ? "none" : "translateY(-6px)", transition: on ? "opacity .45s ease, transform .45s ease" : "opacity .35s ease, transform .35s ease, visibility 0s linear .35s", pointerEvents: on ? "auto" : "none" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: M_COLS, alignItems: "stretch" }}>
-                      <div style={{ ...mHead, justifyContent: "flex-start", paddingLeft: 12 }}>{tx("Capability")}</div>
-                      <div style={{ ...mHead, background: MINT_TINT, color: "#235149", textAlign: "center" }}>Cattle Force</div>
-                      <div style={{ ...mHead, textAlign: "center" }}>{tx("Others")}</div>
-                    </div>
-                    {f.rows.map(([label, others], i) => {
-                      const k = on ? rowK(i) : 1; // leaving panels keep their rows so the whole panel can fade out
-                      return (
-                        <div key={label} style={{ display: "grid", gridTemplateColumns: M_COLS, alignItems: "stretch", borderTop: "1px solid #e3e8e6",
-                          opacity: k, transform: `translateY(${(1 - k) * 12}px)` }}>
-                          <div style={{ padding: "11px 12px", fontSize: 14, fontWeight: 500, lineHeight: 1.35, letterSpacing: "-0.01em" }}>{tx(label)}</div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", background: MINT_TINT }}><StatusChip s="cf" icon /></div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><StatusChip s={others} icon /></div>
+                  <div key={f.area} role="tabpanel" aria-roledescription="slide" aria-label={`${p + 1} / ${FEATURES.length}`} aria-hidden={!on}
+                    style={{ flex: "0 0 100%", minWidth: 0, boxSizing: "border-box", padding: "0 14px 6px", scrollSnapAlign: "center", scrollSnapStop: "always" }}>
+                    <div style={{ border: "1px solid #e6ebe9", borderRadius: 8, overflow: "hidden", background: "#fff",
+                      boxShadow: "0 2px 4px rgba(11,10,9,0.06), 0 10px 22px -10px rgba(11,10,9,0.22)" }}>
+                      {/* Cattle Force is stated once; each row then only needs the competitor's status */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: MINT_TINT, padding: "10px 12px" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#0f2622" }}>
+                          <span aria-hidden style={{ ...dot, background: "#235149" }}><Check color="#fff" /></span>
+                          {tx("Cattle Force includes all")}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5b615f" }}>{tx("Others")}</span>
+                      </div>
+                      {f.rows.map(([label, others]) => (
+                        <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderTop: "1px solid #e3e8e6", padding: "12px" }}>
+                          <span style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.35, letterSpacing: "-0.01em", minWidth: 0 }}>{tx(label)}</span>
+                          <span style={{ flex: "none" }}><StatusChip s={others} /></span>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
                 );
               })}
             </div>
-            {/* Legend */}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 16px", padding: "14px 14px 0", color: "#3d413f" }}>
-              <StatusChip s="y" /><StatusChip s="p" /><StatusChip s="n" />
+
+            {/* Position dots */}
+            <div role="tablist" aria-label={tx("Feature areas")} style={{ display: "flex", justifyContent: "center", gap: 2, paddingTop: 12 }}>
+              {FEATURES.map((f, i) => (
+                <button key={f.area} role="tab" aria-selected={i === tab} aria-label={tx(f.area)} onClick={() => go(i)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 5px", border: 0, background: "transparent", cursor: "pointer" }}>
+                  <span style={{ display: "block", height: 8, width: i === tab ? 22 : 8, borderRadius: 999, background: i === tab ? INK : "#cfd6d3", transition: "width .3s ease, background .3s ease" }} />
+                </button>
+              ))}
             </div>
           </div>
         ) : (
@@ -213,8 +221,6 @@ export function FeatureCard({ className }: { className?: string }) {
   );
 }
 
-const M_COLS = "minmax(0, 1fr) 84px 60px";
-const mHead: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5b615f" };
 
 const headCell: React.CSSProperties = { padding: "clamp(8px, 1.5vh, 18px) clamp(14px, 2vw, 22px)", fontSize: "clamp(13px, 1.9vh, 16px)", fontWeight: 600, letterSpacing: "-0.005em" };
 

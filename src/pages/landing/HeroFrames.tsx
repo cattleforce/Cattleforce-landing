@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import desktopSrc from '../../assets/hero-video/dji0140_desktop.webm'
-import mobileSrc from '../../assets/hero-video/video_mobile.webm'
 
 /* Hero background video. Plays once when the site is opened or reloaded, then stays frozen on its last frame (no loop). */
 // module-level: a full page load / reload resets it; in-app navigation (e.g. to Privacy and back) does not, so the intro plays once per visit
@@ -8,7 +7,7 @@ let played = false
 
 export default function HeroFrames() {
   const ref = useRef<HTMLVideoElement>(null)
-  const src = typeof window !== 'undefined' && window.innerWidth <= 768 ? mobileSrc : desktopSrc
+  const src = desktopSrc // same video on every screen size
 
   useEffect(() => {
     const v = ref.current!
