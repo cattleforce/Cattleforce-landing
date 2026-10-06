@@ -64,12 +64,9 @@ export function FeatureCard({ className }: { className?: string }) {
   // mobile carousel: swiping updates the active area, auto-advance / dot taps scroll to it
   const slidesRef = React.useRef<HTMLDivElement>(null);
   const programmatic = React.useRef(0);
-  const [slideH, setSlideH] = React.useState<number | undefined>(undefined);
   React.useEffect(() => {
     const box = slidesRef.current;
     if (!mobile || !box) return;
-    const slide = box.children[tab] as HTMLElement | undefined;
-    if (slide) setSlideH(slide.offsetHeight);
     if (Math.round(box.scrollLeft / box.clientWidth) !== tab) {
       programmatic.current = performance.now() + 700; // ignore the scroll events this smooth scroll causes
       box.scrollTo({ left: tab * box.clientWidth, behavior: "smooth" });
@@ -111,7 +108,7 @@ export function FeatureCard({ className }: { className?: string }) {
           boxShadow: "0 14px 28px -16px rgba(11,10,9,0.30), 0 6px 12px -8px rgba(11,10,9,0.22)" }}>
           <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end",
             padding: mobile ? "0 18px 16px" : "clamp(12px, 2vh, 28px) clamp(20px, 3vw, 36px) clamp(10px, 2vh, 24px)" }}>
-            <h3 style={{ margin: 0, color: INK, fontWeight: 600, fontSize: mobile ? 28 : "clamp(24px, min(3.6vw, 5.2vh), 48px)", lineHeight: 1, letterSpacing: "-0.04em",
+            <h3 className="cf-ftitle" style={{ margin: 0, color: INK, fontWeight: 600, fontSize: mobile ? 28 : "clamp(24px, min(3.6vw, 5.2vh), 48px)", lineHeight: 1, letterSpacing: "-0.04em",
               opacity: titleK, transform: `translateY(${(1 - titleK) * 10}px)` }}>{tx(FEATURES[tab].area)}</h3>
           </div>
         </div>
@@ -120,27 +117,18 @@ export function FeatureCard({ className }: { className?: string }) {
           <div style={{ padding: "16px 0 18px" }}>
             {/* Swipeable cards, one per area */}
             <div ref={slidesRef} onScroll={onSlides} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="cf-chips"
-              style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none",
-                height: slideH, transition: "height .35s ease" }}>
+              style={{ display: "flex", alignItems: "stretch", overflowX: "auto", scrollSnapType: "x mandatory", scrollbarWidth: "none" }}>
               {FEATURES.map((f, p) => {
                 const on = p === tab;
                 return (
                   <div key={f.area} role="tabpanel" aria-roledescription="slide" aria-label={`${p + 1} / ${FEATURES.length}`} aria-hidden={!on}
                     style={{ flex: "0 0 100%", minWidth: 0, boxSizing: "border-box", padding: "0 14px 6px", scrollSnapAlign: "center", scrollSnapStop: "always" }}>
-                    <div style={{ border: "1px solid #e6ebe9", borderRadius: 8, overflow: "hidden", background: "#fff",
+                    <div style={{ height: "100%", boxSizing: "border-box", border: "1px solid #e6ebe9", borderRadius: 8, overflow: "hidden", background: "#fff",
                       boxShadow: "0 2px 4px rgba(11,10,9,0.06), 0 10px 22px -10px rgba(11,10,9,0.22)" }}>
-                      {/* Cattle Force is stated once; each row then only needs the competitor's status */}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: MINT_TINT, padding: "10px 12px" }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#0f2622" }}>
+                      {f.rows.map(([label], r) => (
+                        <div key={label} style={{ display: "flex", alignItems: "center", gap: 12, borderTop: r ? "1px solid #e3e8e6" : 0, padding: "14px 14px" }}>
                           <span aria-hidden style={{ ...dot, background: "#235149" }}><Check color="#fff" /></span>
-                          {tx("Cattle Force includes all")}
-                        </span>
-                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5b615f" }}>{tx("Others")}</span>
-                      </div>
-                      {f.rows.map(([label, others]) => (
-                        <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderTop: "1px solid #e3e8e6", padding: "12px" }}>
                           <span style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.35, letterSpacing: "-0.01em", minWidth: 0 }}>{tx(label)}</span>
-                          <span style={{ flex: "none" }}><StatusChip s={others} /></span>
                         </div>
                       ))}
                     </div>
