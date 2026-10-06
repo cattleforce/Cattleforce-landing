@@ -13,18 +13,6 @@ export const FEATURES: FeatureArea[] = [
     ['Breed composition tracking', 'n'],
     ['Weight records and growth tracking (ADG)', 'y'],
   ] },
-  { area: 'Production & Breeding', rows: [
-    ['Reproduction tracking (AI/mating, pregnancy checks, calving)', 'y'],
-    ['Milk production logging and KPIs', 'p'],
-  ] },
-  { area: 'Health', rows: [
-    ['Veterinary and health events', 'y'],
-  ] },
-  { area: 'Business', rows: [
-    ['Financial tracking', 'p'],
-    ['Inventory ledger with stock guards', 'n'],
-    ['Business partners (suppliers, customers, investors)', 'p'],
-  ] },
   { area: 'Operations', rows: [
     ['Task calendar and worker management', 'p'],
     ['Groups and locations', 'y'],
@@ -37,5 +25,17 @@ export const FEATURES: FeatureArea[] = [
     ['Analytics', 'p'],
     ['Notifications', 'p'],
     ['CSV reports and data export', 'y'],
+  ] },
+  { area: 'Business', rows: [
+    ['Financial tracking', 'p'],
+    ['Inventory ledger with stock guards', 'n'],
+    ['Business partners (suppliers, customers, investors)', 'p'],
+  ] },
+  { area: 'Production & Breeding', rows: [
+    ['Reproduction tracking (AI/mating, pregnancy checks, calving)', 'y'],
+    ['Milk production logging and KPIs', 'p'],
+  ] },
+  { area: 'Health', rows: [
+    ['Veterinary and health events', 'y'],
   ] },
 ];
