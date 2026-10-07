@@ -512,22 +512,25 @@ export default function Story() {
     // until the scroll input (wheel / finger, including its momentum) has stopped for a moment. The next fresh scroll then moves one step on.
     let holdY: number | null = null, holdTimer = 0, prevY = scrollY, lastTry = 0
     const coarse = matchMedia('(pointer: coarse)').matches
-    const armHold = () => { clearTimeout(holdTimer); holdTimer = window.setTimeout(() => { holdY = null }, coarse ? 380 : 170) }
-    step.current.setHold = (y: number) => { holdY = y; rest = current(); armHold() }
+    // The hold only soaks up the momentum of the gesture that got us here: it has a hard time limit (never re-armed, so continuous or aggressive scrolling can't be
+    // stuck behind it), and the first wheel notch after a pause (a new gesture) lets go at once.
+    const armHold = (ms: number) => { clearTimeout(holdTimer); holdTimer = window.setTimeout(() => { holdY = null }, coarse ? 380 : ms) }
+    step.current.setHold = (y: number) => { holdY = y; rest = current(); armHold(650) }
     const onEntry = () => {
       const y = scrollY, c0 = chapterY(0)
       if (navigating() || innerWidth < 820) { holdY = null; prevY = y; return } // phones use native scroll-snap below instead (clamping against momentum made it judder)
       // arriving from the hero: land on the first chapter, never beyond it
       // only a real wheel / touch gesture earns the arrival stop; programmatic jumps (menu links, keyboard) must never be caught on the way
-      if (holdY === null && !step.current.busy && performance.now() - lastIn < 600 && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold() }
+      if (holdY === null && !step.current.busy && performance.now() - lastIn < 600 && prevY < c0 - 2 && y >= c0 - 2 && y > prevY) { wasPinned = true; rest = 0; holdY = c0; armHold(450) }
       prevY = y
       if (holdY !== null && !step.current.busy && Math.abs(y - holdY) > 1) {
-        // momentum is still trying to carry on: keep holding (and keep the hold alive) until it has died out
-        lastTry = performance.now(); armHold()
+        // momentum is still trying to carry on: hold the line until the time limit
+        lastTry = performance.now()
         window.scrollTo({ top: holdY, behavior: 'instant' as ScrollBehavior })
       }
     }
-    const onInput = () => { if (holdY !== null) armHold() }
+    let lastWheelT = 0
+    const onInput = () => { const now = performance.now(), gap = now - lastWheelT; lastWheelT = now; if (holdY !== null && gap > 110) holdY = null }
     const onTouchDown = () => { touching = true; markIn(); if (holdY !== null && performance.now() - lastTry > 150) holdY = null } // a fresh touch after the momentum has settled is a new gesture
     const onTouchUp = () => { touching = false; markIn() }
     window.addEventListener('scroll', onEntry, { passive: true })
@@ -536,7 +539,6 @@ export default function Story() {
     window.addEventListener('touchstart', onTouchDown, { passive: true })
     window.addEventListener('touchend', onTouchUp, { passive: true })
     window.addEventListener('touchcancel', onTouchUp, { passive: true })
-    window.addEventListener('touchmove', onInput, { passive: true })
 
     // phones: native scroll-snap (mandatory, stop: always) catches even a hard flick at the story's top edge, from above (hero) or from below (typed text),
     // smoothly and without fighting the momentum. It is off everywhere else, so the rest of the page scrolls freely.
@@ -575,7 +577,7 @@ export default function Story() {
     return () => {
       window.removeEventListener('scroll', onSnapScroll); window.removeEventListener('resize', onSnapScroll); window.removeEventListener('cf:nav', onSnapScroll); root.classList.remove('cf-snap'); cancelAnimationFrame(snapRaf)
       window.removeEventListener('wheel', interrupt); window.removeEventListener('touchstart', interrupt); window.removeEventListener('cf:nav', interrupt)
-      window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('wheel', markIn); window.removeEventListener('touchstart', onTouchDown); window.removeEventListener('touchend', onTouchUp); window.removeEventListener('touchcancel', onTouchUp); window.removeEventListener('touchmove', onInput); clearTimeout(holdTimer); step.current.setHold = undefined
+      window.removeEventListener('scroll', onEntry); window.removeEventListener('wheel', onInput); window.removeEventListener('wheel', markIn); window.removeEventListener('touchstart', onTouchDown); window.removeEventListener('touchend', onTouchUp); window.removeEventListener('touchcancel', onTouchUp); clearTimeout(holdTimer); step.current.setHold = undefined
       window.removeEventListener('scroll', onScrollIdle); clearTimeout(idle)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
