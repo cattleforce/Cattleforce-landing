@@ -466,6 +466,10 @@ function Demo() {
   const [bad, setBad] = useState({ name: false, email: false })
   const [status, setStatus] = useState<Status>('idle')
   const [sentTo, setSentTo] = useState({ first: '', email: '' })
+  // Spam traps: two fields people never see (bots that fill every input fall for them) and a minimum fill-in time (bots submit instantly).
+  const [honey, setHoney] = useState('')
+  const [site, setSite] = useState('')
+  const shownAt = useRef(Date.now())
 
   const submit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -476,6 +480,12 @@ function Demo() {
       return
     }
     setErr('')
+    if (honey || site || Date.now() - shownAt.current < 2500) {
+      // looks like a bot: pretend it worked, send nothing
+      setSentTo({ first: name.trim().split(/\s+/)[0], email: email.trim() })
+      setStatus('success')
+      return
+    }
     setStatus('loading')
     try {
       const res = await fetch('https://formsubmit.co/ajax/cattleeforcee@gmail.com', {
@@ -488,6 +498,7 @@ function Demo() {
           subject: 'Book a demo',
           _subject: '[Cattle Force] Book a demo',
           _captcha: 'false',
+          _honey: honey, // FormSubmit also drops any submission where this is filled
           _template: 'table',
         }),
       })
@@ -503,7 +514,7 @@ function Demo() {
     } catch {
       setStatus('error')
     }
-  }, [name, email, message])
+  }, [name, email, message, honey, site])
 
   return (
     <section id="demo" data-sec className="cf2-demo">
@@ -530,6 +541,10 @@ function Demo() {
             </div>
           ) : (
             <form onSubmit={submit} noValidate>
+              <div className="cf2-hp" aria-hidden="true">
+                <label>Website<input type="text" name="website" value={site} onChange={e => setSite(e.target.value)} tabIndex={-1} autoComplete="off" /></label>
+                <label>Leave this empty<input type="text" name="_honey" value={honey} onChange={e => setHoney(e.target.value)} tabIndex={-1} autoComplete="off" /></label>
+              </div>
               <label>{tx('Name')}
                 <input value={name} onChange={e => setName(e.target.value)} placeholder={tx('Your name')} autoComplete="name" style={{ borderColor: bad.name ? '#ff7a5c' : undefined }} />
               </label>
