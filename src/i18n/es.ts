@@ -6,7 +6,7 @@ export const ES: Record<string, string> = {
   'Close menu': 'Cerrar menú', 'Open menu': 'Abrir menú', 'See how it works': 'Ver cómo funciona', 'Loading': 'Cargando',
   'Product': 'Producto', 'Features': 'Funciones', 'Testimonials': 'Testimonios', 'Questions': 'Preguntas',
   // intro
-  'The operating system for': 'El sistema operativo para', 'modern cattle farms.': 'granjas ganaderas modernas.',
+  'The operating system for': 'El sistema operativo para', 'modern cattle farms.': 'ganaderías modernas.',
   'A complete cattle management system built to track every animal,': 'Un sistema completo de gestión ganadera creado para dar seguimiento a cada animal,',
   'every event, and every outcome.': 'cada evento y cada resultado.',
   'Trusted by high-volume cattle operations across the Americas, Europe, and Asia': 'Con la confianza de operaciones ganaderas de gran volumen en América, Europa y Asia',
@@ -60,7 +60,7 @@ export const ES: Record<string, string> = {
   'Our staff log treatments and yields from their phones in the shed. I see every animal’s history before I walk the lines in the morning.': 'Nuestro personal registra los tratamientos y la producción desde sus teléfonos en el establo. Veo el historial de cada animal antes de recorrer las hileras por la mañana.',
   // FAQ
   'Asked and': 'Preguntas y', 'answered.': 'respuestas.',
-  'Who is Cattle Force for?': '¿Para quién es Cattle Force?', 'Dairy and cattle farms of any size that want one reliable record of their animals, the work done on them and the results.': 'Granjas lecheras y ganaderas de cualquier tamaño que quieren un único registro confiable de sus animales, del trabajo realizado con ellos y de los resultados.',
+  'Who is Cattle Force for?': '¿Para quién es Cattle Force?', 'Dairy and cattle farms of any size that want one reliable record of their animals, the work done on them and the results.': 'Ganaderías lecheras o cárnicas de cualquier tamaño que quieren un único registro confiable de sus animales, del trabajo realizado con ellos y de los resultados.',
   'Can we bring in our existing records?': '¿Podemos incorporar nuestros registros existentes?', 'Yes. Existing registers and spreadsheets can be imported, so the herd history starts complete from the first day.': 'Sí. Los registros y las hojas de cálculo existentes se pueden importar, de modo que el historial del hato empieza completo desde el primer día.',
   'Who on the farm can use it?': '¿Quién en la granja puede usarlo?', 'Owners, managers, vets and farm staff each get their own login and see the parts of the farm that matter to their work.': 'Propietarios, gerentes, veterinarios y personal de la granja reciben cada uno su propio inicio de sesión y ven las partes de la granja que importan para su trabajo.',
   'How do we get started?': '¿Cómo empezamos?', 'Book a demo. We walk through your farm’s current setup and show how it maps onto Cattle Force.': 'Reserva una demo. Repasamos la configuración actual de tu granja y mostramos cómo se traslada a Cattle Force.',
@@ -77,17 +77,17 @@ export const ES: Record<string, string> = {
   // footer
   'Contact Us: ': 'Contáctanos: ', 'Privacy Policy': 'Política de privacidad', 'Terms & Conditions': 'Términos y condiciones',
   // page meta
-  'Cattle Force — The Operating System for Modern Cattle Farms': 'Cattle Force — El sistema operativo para granjas ganaderas modernas',
+  'Cattle Force — The Operating System for Modern Cattle Farms': 'Cattle Force — El sistema operativo para ganaderías modernas',
   'Capability': 'Capacidad', 'Scroll to the next section': 'Ir a la siguiente sección', 'Cattle Force includes all': 'Cattle Force incluye todo', 'Others': 'Otros', 'Included': 'Incluido', 'Partial': 'Parcial', 'Not available': 'No disponible', 'Feature areas': 'Áreas de funciones',
   'About': 'Sobre', 'Us': 'nosotros', 'About us': 'Nosotros',
   'We come from farming families. We\u2019ve seen how hard life on the farm can be, and how much the right technology can change it. Our vision is to make farmers smarter, with tools that work as hard as they do.': 'Venimos de familias agricultoras. Hemos visto lo dura que puede ser la vida en el campo y cuánto puede cambiarla la tecnología adecuada. Nuestra visión es hacer a los agricultores más inteligentes, con herramientas que trabajan tan duro como ellos.',
   'Cattle Force isn\u2019t a subscription you buy online and then figure out alone. We build it alongside farmers, with trust at the center. We commit to each farm we work with and solve the real, practical problems that come up in daily operations, from tracking every animal to alerting you when your cattle need attention.': 'Cattle Force no es una suscripción que compras en línea y luego resuelves por tu cuenta. La construimos junto a los agricultores, con la confianza en el centro. Nos comprometemos con cada granja con la que trabajamos y resolvemos los problemas reales y prácticos del día a día, desde el seguimiento de cada animal hasta avisarte cuando tu ganado necesita atención.',
   'Built with farmers, for farmers, by farmers.': 'Hecho con agricultores, para agricultores, por agricultores.',
-  'Co-founder and Technology': 'Cofundador y Tecnología', 'Co-founder and Product': 'Cofundador y Producto', 'Field Growth & Partnership': 'Crecimiento en campo y Alianzas',
+  'Co-founder and Technology': 'Cofundador y Tecnología', 'Co-founder and Product': 'Cofundador y Producto', 'Co-founder & Rancher': 'Cofundador y Ganadero',
   'Nikhil leads the engineering and builds the platform that turns the realities of herd management into a system farmers can rely on.': 'Nikhil lidera la ingeniería y construye la plataforma que convierte las realidades del manejo del hato en un sistema en el que los agricultores pueden confiar.',
   'Ashrith shapes the product around what farmers need and leads operations and growth.': 'Ashrith da forma al producto según lo que necesitan los agricultores y lidera las operaciones y el crecimiento.',
-  'Our pioneering farm partner and field lead. He uses real-world feedback to guide product development and spearheads our South American expansion.': 'Nuestro granjero socio pionero y líder de campo. Usa la retroalimentación del mundo real para guiar el desarrollo del producto y encabeza nuestra expansión en Sudamérica.',
-  'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para granjas ganaderas modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
+  'An active rancher grounding CattleForce in real-world operations. Manuel collaborates closely with fellow producers to build practical tools tailored to day-to-day farm management.': 'Un ganadero en activo que ancla CattleForce en las operaciones del mundo real. Manuel colabora estrechamente con otros productores para crear herramientas prácticas adaptadas a la gestión diaria de la granja.',
+  'The operating system for modern cattle farms. Track every animal, every event, and every outcome.': 'El sistema operativo para ganaderías modernas. Da seguimiento a cada animal, cada evento y cada resultado.',
 }
 
 export const MAN_ES = 'Cattle Force reemplaza los cuadernos y las hojas de cálculo con una plataforma inteligente que gestiona tu hato, equipo y finanzas, todo en un solo lugar.'

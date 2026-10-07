@@ -13,8 +13,8 @@ const PEOPLE = [
     bio: 'Ashrith shapes the product around what farmers need and leads operations and growth.',
   },
   {
-    kind: 'c', name: 'Manuel Perez', role: 'Field Growth & Partnership',
-    bio: 'Our pioneering farm partner and field lead. He uses real-world feedback to guide product development and spearheads our South American expansion.',
+    kind: 'c', name: 'Manuel Perez', role: 'Co-founder & Rancher',
+    bio: 'An active rancher grounding CattleForce in real-world operations. Manuel collaborates closely with fellow producers to build practical tools tailored to day-to-day farm management.',
   },
 ]
 
