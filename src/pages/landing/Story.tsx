@@ -543,7 +543,7 @@ export default function Story() {
     // phones: native scroll-snap (mandatory, stop: always) catches even a hard flick at the story's top edge, from above (hero) or from below (typed text),
     // smoothly and without fighting the momentum. It is off everywhere else, so the rest of the page scrolls freely.
     const root = document.documentElement
-    let snapRaf = 0
+    let snapRaf = 0, lastSnapY = scrollY, lastUp = false
     const updateSnap = () => {
       snapRaf = 0
       const el = secRef.current, man = document.getElementById('manifesto')
@@ -551,7 +551,12 @@ export default function Story() {
       if (el && innerWidth < 820 && !navigating()) {
         const manTop = man ? man.getBoundingClientRect().top + scrollY : el.getBoundingClientRect().top + scrollY + el.offsetHeight
         // snapping is live from the hero down to the story, and between the story and the typed text, so the story always lands exactly in frame
-        on = scrollY < manTop - 2 // one continuous snap zone (hero > story > typed text): the class never flips mid-flick, which is what made it judder
+        // Snapping helps in two places only: arriving at the story from above (hero), and arriving back at it from below (scrolling up from the typed text).
+        // Scrolling DOWN out of the story is never snapped, so nothing can pull you back into it.
+        const y = scrollY, top = el.getBoundingClientRect().top + y
+        const up = y < lastSnapY - 0.5 ? true : y > lastSnapY + 0.5 ? false : lastUp
+        lastSnapY = y; lastUp = up
+        on = y < top - 2 || (y > top + 2 && y < manTop - 2 && up)
       }
       root.classList.toggle('cf-snap', on)
     }
