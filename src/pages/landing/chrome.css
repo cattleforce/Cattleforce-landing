@@ -16,7 +16,7 @@ body { background: transparent !important; margin: 0; -webkit-font-smoothing: an
 .cf2n-bar { position: relative; z-index: 60; pointer-events: auto; margin: 0 auto; min-width: 1120px; max-width: 1360px; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-radius: 9999px; transition: width .8s cubic-bezier(.22,.8,.3,1), transform .8s cubic-bezier(.22,.8,.3,1), background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
 .cf2n-logo { position: relative; z-index: 20; margin-right: 16px; display: flex; align-items: center; padding: 4px 8px; }
 .cf2n-logo img { display: block; width: auto; transition: opacity .3s ease; }
-.cf2n-links { position: relative; min-width: 0; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 16px; font-weight: 500; pointer-events: none; }
+.cf2n-links { position: relative; min-width: 0; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 16px; font-weight: 600; pointer-events: none; }
 .cf2n-links a { position: relative; white-space: nowrap; padding: 12px 18px; pointer-events: auto; transition: color .3s ease; }
 .cf2n-links a > span:first-child { position: absolute; inset: 0; border-radius: 9999px; transition: opacity .2s; }
 .cf2n-actions { position: relative; z-index: 20; display: flex; align-items: center; gap: 14px; }
@@ -244,3 +244,14 @@ html.cf-lang-out .cf2root > :not(.cf2n):not(.cf2n-scrim):not(.cf2-loader) { opac
   html.cf-snap #intro { scroll-snap-align: start; }
   html.cf-snap #top { scroll-snap-align: start; scroll-snap-stop: always; }
 }
+
+/* readability: a little more weight and contrast on the homepage type (hero + story).
+   Instrument Serif only comes in one weight, so the headings get a hairline stroke to thicken them slightly. */
+.cf2i-h1, .cf2s-c0 h1, .cf2s-ch h2 { -webkit-text-stroke: .6px currentColor; paint-order: stroke fill; }
+.cf2i-h1 { text-shadow: 0 2px 28px rgba(0,0,0,.5); }
+.cf2i-shade { background: rgba(15,14,13,.4); }
+.cf2i-sub { font-weight: 500; color: rgba(243,242,242,.94); text-shadow: 0 1px 18px rgba(0,0,0,.55); }
+.cf2i-trust-label { font-weight: 500; color: rgba(243,242,242,.92); }
+.cf2i-logos { font-weight: 600; color: rgba(243,242,242,.96); }
+.cf2i-primary, .cf2i-secondary { font-weight: 600; }
+.cf2s-c0 p, .cf2s-ch p { font-weight: 500; color: rgba(243,242,242,.92); }

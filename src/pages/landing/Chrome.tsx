@@ -141,7 +141,7 @@ export function Navbar() {
           {logo(35.7)}
           <div className="cf2n-links" onMouseLeave={() => setHov(null)}>
             {NAV.map(([label, href], i) => (
-              <a key={href} href={href} onMouseEnter={() => setHov(i)} style={{ color: light ? '#262524' : '#d4d4d4' }}>
+              <a key={href} href={href} onMouseEnter={() => setHov(i)} style={{ color: light ? '#262524' : '#f3f2f2' }}>
                 <span aria-hidden="true" style={{ background: light ? 'rgba(15,14,13,0.06)' : '#262626', opacity: hov === i ? 1 : 0 }} />
                 <span style={{ position: 'relative', zIndex: 20 }}>{tx(label)}</span>
               </a>
