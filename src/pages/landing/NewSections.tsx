@@ -221,7 +221,7 @@ function Product() {
             <div className="cf2-tabs" role="tablist" aria-label={tx('Screens')}>
               {SCREENS.map((s, k) => (
                 <span key={s.title} className="cf2-tab-wrap">
-                  {k > 0 && <span className="cf2-tab-sep" aria-hidden="true">//</span>}
+                  {k > 0 && <span className="cf2-tab-sep" aria-hidden="true"><span className="cf2-sep-d">//</span><span className="cf2-sep-m">/</span></span>}
                   <button role="tab" aria-selected={k === i} className={k === i ? 'on' : ''} onClick={() => { setI(k); setLocked(true) }}>
                     {tx(s.title)}
                   </button>

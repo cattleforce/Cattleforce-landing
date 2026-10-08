@@ -456,3 +456,15 @@
 
 /* spam-trap fields: kept in the page (bots skip display:none) but off-screen and unreachable for people */
 .cf2-hp { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+
+/* phones: the four screen names (longer in Spanish) share one line, with a single "/" between them instead of "//" */
+.cf2-sep-m { display: none; }
+@media (max-width: 760px) {
+  .cf2-sep-d { display: none; }
+  .cf2-sep-m { display: inline; }
+  #product .cf2-tabs { flex-wrap: nowrap; justify-content: center; gap: 0; padding-left: 4px; padding-right: 4px; }
+  #product .cf2-tab-wrap { gap: clamp(1px, .6vw, 4px); flex: none; }
+  #product .cf2-tabs button { padding: 4px 2px; font-size: min(2.5vw, 11px); letter-spacing: .05em; }
+  #product .cf2-tab-sep { font-size: min(2.5vw, 11px); letter-spacing: 0; }
+  html[lang="es"] #product .cf2-tabs button, html[lang="es"] #product .cf2-tab-sep { font-size: min(2.15vw, 10px); letter-spacing: .03em; }
+}
