@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import appDashboard from '../../assets/new/app-dashboard.png'
-import appAnimals from '../../assets/new/app-animals.png'
-import appPedigree from '../../assets/new/app-pedigree.png'
+import appDashboard from '../../assets/new/screen-dashboard.jpg'
+import appAnimals from '../../assets/new/screen-animals.jpg'
+import appReproduction from '../../assets/new/screen-reproduction.jpg'
+import appMilk from '../../assets/new/screen-milk.jpg'
 import logoWhite from '../../assets/new/logo-lockup-white.png'
 import FeatureCard from './feature-card/FeatureCard'
 import { GridBackdrop, LangToggle, RippleLayer } from './Chrome'
@@ -21,10 +22,12 @@ const MAN_WORDS = manWords(MAN)
 const MAN_WORDS_ES = manWords(MAN_ES)
 const MAN_HL = new Set(['smart', 'platform'])
 
+// in the same order as the app's own menu
 const SCREENS = [
   { src: appDashboard, title: 'Dashboard' },
   { src: appAnimals, title: 'Animals' },
-  { src: appPedigree, title: 'Pedigree' },
+  { src: appReproduction, title: 'Reproduction' },
+  { src: appMilk, title: 'Milk Production' },
 ]
 
 

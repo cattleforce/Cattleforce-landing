@@ -38,8 +38,8 @@ export const ES: Record<string, string> = {
   'Y': 'A', 'EXPECTED GROWTH': 'CRECIMIENTO ESPERADO', 'PARENTS': 'PADRES', 'GRANDPARENTS': 'ABUELOS', 'GREAT-GRANDPARENTS': 'BISABUELOS',
   // product
   'The product': 'El producto', "Built around the": 'Creado en torno al', "day's work.": 'trabajo del día.', 'Real screens from the Cattle Force app.': 'Pantallas reales de la aplicación de Cattle Force.', 'Screens': 'Pantallas',
-  'Dashboard': 'Panel', 'Animals': 'Animales', 'Pedigree': 'Pedigrí',
-  'Cattle Force Dashboard screen': 'Pantalla del Panel de Cattle Force', 'Cattle Force Animals screen': 'Pantalla de Animales de Cattle Force', 'Cattle Force Pedigree screen': 'Pantalla de Pedigrí de Cattle Force',
+  'Dashboard': 'Panel', 'Animals': 'Animales', 'Pedigree': 'Pedigrí', 'Reproduction': 'Reproducción', 'Milk Production': 'Producción de leche',
+  'Cattle Force Dashboard screen': 'Pantalla del Panel de Cattle Force', 'Cattle Force Animals screen': 'Pantalla de Animales de Cattle Force', 'Cattle Force Pedigree screen': 'Pantalla de Pedigrí de Cattle Force', 'Cattle Force Reproduction screen': 'Pantalla de Reproducción de Cattle Force', 'Cattle Force Milk Production screen': 'Pantalla de Producción de leche de Cattle Force',
   // features
   'Feature index': 'Índice de funciones', 'Everything the': 'Todo lo que hace funcionar la', 'farm': 'la granja', ' runs on.': '',
   'Herd of cows on a green pasture': 'Un hato de vacas en un pastizal verde', 'Herd of cows in a green pasture': 'Un hato de vacas en un pastizal verde', 'Ranch hands rounding up cattle': 'Vaqueros reuniendo al ganado',
